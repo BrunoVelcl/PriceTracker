@@ -19,15 +19,16 @@ public class LinkFetcher {
 
     private final WebDriver driver;
     private final WebDriverWait driverWait;
+    private final String updatedGreen = "\u001b[32mUPDATED\u001b[37m: ";
 
-    public LinkFetcher(){
+    public LinkFetcher() {
         FirefoxOptions options = new FirefoxOptions();
         //options.addArguments("--headless");
         driver = new FirefoxDriver(options);
         driverWait = new WebDriverWait(driver, Duration.ofSeconds(10));
     }
 
-    public void getLinksKaufland(){
+    public void getLinksKaufland() {
         String rootUrl = "https://www.kaufland.hr";
         String pricePageUrl = "https://www.kaufland.hr/akcije-novosti/popis-mpc.html";
 
@@ -46,38 +47,38 @@ public class LinkFetcher {
 
         StringBuilder sb = new StringBuilder();
 
-        try (FileWriter writer = new FileWriter(file)){
-            for(WebElement link : links){
+        try (FileWriter writer = new FileWriter(file)) {
+            for (WebElement link : links) {
 
                 sb.append(link.getAccessibleName()).deleteCharAt(0)
-                    .append(",")
-                    .append(rootUrl)
-                    .append(link.getDomAttribute("href"))
-                    .append("\n");
+                        .append(",")
+                        .append(rootUrl)
+                        .append(link.getDomAttribute("href"))
+                        .append("\n");
 
                 //Cleans the URL if there are white spaces.
-                for(int i = Objects.requireNonNull(link.getAccessibleName()).length(); i < sb.length(); i++){
-                    if (sb.charAt(i) == ' '){
+                for (int i = Objects.requireNonNull(link.getAccessibleName()).length(); i < sb.length(); i++) {
+                    if (sb.charAt(i) == ' ') {
                         sb.deleteCharAt(i);
                         sb.insert(i, "%20");
-                        i+=2;
+                        i += 2;
                     }
                 }
 
                 writer.write(sb.toString());
                 sb.setLength(0);
             }
-        }catch (IOException e){
+        } catch (IOException e) {
             System.err.println("Can't write to: " + filePath);
         }
 
         driver.quit();
 
-        System.out.println("\u001b[32mUPDATED\u001b[37m: " + rootUrl);
+        System.out.println(updatedGreen + rootUrl);
 
     }
 
-    public void getLinksLidl(){
+    public void getLinksLidl() {
 
         String rootUrl = "https://www.lidl.hr/";
         String pricePageUrl = "https://tvrtka.lidl.hr/cijene";
@@ -97,18 +98,50 @@ public class LinkFetcher {
 
         File file = new File(filePath);
         String link = links.getLast().getDomAttribute("href");
-        if (link == null){
+        if (link == null) {
             System.err.println("Failed to get link for: " + rootUrl);
             return;
         }
 
-        try(FileWriter writer = new FileWriter(file)){
-            writer.write( "Lidl.zip," + link);
-        }catch (IOException e){
+        try (FileWriter writer = new FileWriter(file)) {
+            writer.write("Lidl.zip," + link);
+        } catch (IOException e) {
             System.err.println("Can't write to: " + filePath);
         }
 
-        System.out.println("\u001b[32mUPDATED\u001b[37m: " + rootUrl);
+        System.out.println(updatedGreen + rootUrl);
+        driver.quit();
+    }
+
+    public void getLinksPlodine() {
+        String rootUrl = "https://www.plodine.hr/";
+        String pricePageUrl = "https://www.plodine.hr/info-o-cijenama";
+
+        driver.get(pricePageUrl);
+        driverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//button[text()='Prihvaćam']")));
+        WebElement cookieButton = driver.findElement(By.xpath("//button[text()='Prihvaćam']"));
+        cookieButton.click();
+
+        driverWait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("a[href$='.zip']")));
+        System.out.printf("Waiting on: %s\r", rootUrl);
+
+        List<WebElement> links = driver.findElements(By.cssSelector("a[href$='.zip']"));
+
+        String filePath = "G:\\Dev\\Prices\\links\\plodine.csv";
+        String link = links.getFirst().getDomAttribute("href");
+        if (link == null) {
+            System.err.println("Failed to get link for: " + rootUrl);
+            return;
+        }
+
+        File file = new File(filePath);
+        try(FileWriter writer = new FileWriter(file)){
+            writer.write("Plodine.zip," + link);
+        }catch(IOException e){
+            System.err.println("Can't write to: " + filePath);
+        }
+
+        System.out.println(updatedGreen + rootUrl);
         driver.quit();
     }
 }
