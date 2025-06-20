@@ -17,18 +17,24 @@ import java.util.Optional;
 
 public class LinkFetcher {
 
+    private final WebDriver driver;
+    private final WebDriverWait driverWait;
+
+    public LinkFetcher(){
+        FirefoxOptions options = new FirefoxOptions();
+        //options.addArguments("--headless");
+        driver = new FirefoxDriver(options);
+        driverWait = new WebDriverWait(driver, Duration.ofSeconds(10));
+    }
+
     public void getLinksKaufland(){
         String rootUrl = "https://www.kaufland.hr";
         String pricePageUrl = "https://www.kaufland.hr/akcije-novosti/popis-mpc.html";
 
-        FirefoxOptions options = new FirefoxOptions();
-        options.addArguments("--headless");
-        WebDriver driver = new FirefoxDriver(options);
         driver.get(pricePageUrl);
         WebElement cookieButton = driver.findElement(By.id("onetrust-accept-btn-handler"));
         cookieButton.click();
 
-        WebDriverWait driverWait = new WebDriverWait(driver, Duration.ofSeconds(10));
         driverWait.until(ExpectedConditions.presenceOfElementLocated(By.partialLinkText(".csv")));
         System.out.printf("Waiting on: %s\r", rootUrl);
 
@@ -69,5 +75,40 @@ public class LinkFetcher {
 
         System.out.println("\u001b[32mUPDATED\u001b[37m: " + rootUrl);
 
+    }
+
+    public void getLinksLidl(){
+
+        String rootUrl = "https://www.lidl.hr/";
+        String pricePageUrl = "https://tvrtka.lidl.hr/cijene";
+
+        driver.get(pricePageUrl);
+        driverWait.until(ExpectedConditions.presenceOfElementLocated(By.id("onetrust-accept-btn-handler")));
+        WebElement cookieButton = driver.findElement(By.id("onetrust-accept-btn-handler"));
+        cookieButton.click();
+
+        driverWait.until(ExpectedConditions.presenceOfElementLocated(By.partialLinkText("ovdje")));
+        System.out.printf("Waiting on: %s\r", rootUrl);
+
+        List<WebElement> links = driver.findElements(By.partialLinkText("ovdje"));
+        links.removeLast(); //there is something else on the site with the same link text
+
+        String filePath = "G:\\Dev\\Prices\\links\\lidl.csv";
+
+        File file = new File(filePath);
+        String link = links.getLast().getDomAttribute("href");
+        if (link == null){
+            System.err.println("Failed to get link for: " + rootUrl);
+            return;
+        }
+
+        try(FileWriter writer = new FileWriter(file)){
+            writer.write( "Lidl.zip," + link);
+        }catch (IOException e){
+            System.err.println("Can't write to: " + filePath);
+        }
+
+        System.out.println("\u001b[32mUPDATED\u001b[37m: " + rootUrl);
+        driver.quit();
     }
 }
