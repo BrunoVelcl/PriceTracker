@@ -23,7 +23,7 @@ public class LinkFetcher {
 
     public LinkFetcher() {
         FirefoxOptions options = new FirefoxOptions();
-        //options.addArguments("--headless");
+        options.addArguments("--headless");
         driver = new FirefoxDriver(options);
         driverWait = new WebDriverWait(driver, Duration.ofSeconds(10));
     }
@@ -143,5 +143,83 @@ public class LinkFetcher {
 
         System.out.println(updatedGreen + rootUrl);
         driver.quit();
+    }
+
+    public void getLinksStudenac(){
+        String rootUrl = "https://www.studenac.hr/";
+        String pricePageUrl = "https://www.studenac.hr/popis-maloprodajnih-cijena";
+
+        driver.get(pricePageUrl);
+        driverWait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("a[href$='.zip']")));
+        System.out.printf("Waiting on: %s\r", rootUrl);
+
+        List<WebElement> links = driver.findElements(By.cssSelector("a[href$='.zip']"));
+
+        String filePath = "G:\\Dev\\Prices\\links\\studenac.csv";
+
+        String link = links.getFirst().getDomAttribute("href");
+        if (link == null) {
+            System.err.println("Failed to get link for: " + rootUrl);
+            return;
+        }
+
+        File file = new File(filePath);
+
+        try(FileWriter writer = new FileWriter(file)){
+            writer.write("Studenac.zip," + link);
+        }catch(IOException e){
+            System.err.println("Can't write to: " + filePath);
+        }
+
+        System.out.println(updatedGreen + rootUrl);
+        driver.quit();
+    }
+
+    public void getLinksSpar(){
+        String rootUrl = "https://www.spar.hr/";
+        String pricePageUrl = "https://www.spar.hr/usluge/cjenici";
+
+        driver.get(pricePageUrl);
+        driver.switchTo().frame(4);
+        driverWait.until(ExpectedConditions.presenceOfElementLocated(By.linkText("Preuzmi")));
+
+        System.out.printf("Waiting on: %s\r", rootUrl);
+
+        List<WebElement> links = driver.findElements(By.linkText("Preuzmi"));
+
+        String filePath = "G:\\Dev\\Prices\\links\\spar.csv";
+
+        File file = new File(filePath);
+
+        StringBuilder sb = new StringBuilder();
+
+        try (FileWriter writer = new FileWriter(file)) {
+            for (WebElement link : links) {
+
+                sb.append(Objects.requireNonNull(link.getDomAttribute("href")).substring(37))
+                        .append(",")
+                        .append(link.getDomAttribute("href"))
+                        .append("\n");
+
+                //Cleans the URL if there are white spaces.
+                for (int i = 0; i < sb.length(); i++) {
+                    if (sb.charAt(i) == ' ') {
+                        sb.deleteCharAt(i);
+                        sb.insert(i, "%20");
+                        i += 2;
+                    }
+                }
+
+                writer.write(sb.toString());
+                sb.setLength(0);
+            }
+        } catch (IOException e) {
+            System.err.println("Can't write to: " + filePath);
+        }
+
+        driver.quit();
+
+        System.out.println(updatedGreen + rootUrl);
+
     }
 }
