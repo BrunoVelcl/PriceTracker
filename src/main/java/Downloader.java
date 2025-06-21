@@ -1,8 +1,5 @@
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Scanner;
@@ -13,46 +10,50 @@ import java.net.http.HttpResponse;
 
 
 public class Downloader {
-    public void download(String dir){
-        File folder = (dir == null) ? new File("G:\\Dev\\Prices\\links") : new File(dir);
-        File[] stores = folder.listFiles();
-        assert stores != null;
-        for(File store: stores){
-            List<StoreNameLinks> table = createTable(store);
-            if(table == null){
-                System.out.println("Couldn't read: " + store.toString());
-                System.out.println("Skipping file...");
-                continue;
-            }
-            downloadCSV(table);
-            System.out.println("\u001b[32mDOWNLOAD COMPLETE\u001b[37m: " + store.toString());
+
+    @SuppressWarnings("unchecked")
+    public void download(String destinationDir){
+        List<StoreNameLinks> linksList;
+        try(ObjectInputStream inputStream = new ObjectInputStream(new FileInputStream("links.bin"))){
+            linksList = (List<StoreNameLinks>) inputStream.readObject();
+        }catch (IOException | ClassNotFoundException e){
+            System.err.println("ERROR: Can't find link file.");
+            return;
         }
+
+            downloadFromLinks(linksList, destinationDir);
+            System.out.println("\u001b[32mDOWNLOAD COMPLETE\u001b[37m: ");
     }
 
-    private List<StoreNameLinks> createTable(File store) {
-        Scanner scanner = null;
-        try{
-            scanner = new Scanner(store);
-        }catch (FileNotFoundException e){
-            System.err.println("Links directory corrupted: " + e);
-            return null;
-        }
-        List<StoreNameLinks> table = new ArrayList<>();
-
-        while (scanner.hasNextLine()){
-            String row = scanner.nextLine();
-            String[] columns = row.split(",");
-            table.add(new StoreNameLinks(columns[0], columns[1].replace(" ", "%20")));
-        }
-
-        return table;
-
+    //TODO: DELETE, this bullshit shouldn't exist outside of my PC
+    public void download(){
+        download("G:\\Dev\\Prices\\dumpster\\");
     }
 
-    private void downloadCSV(List<StoreNameLinks> store) {
+//    private List<StoreNameLinks> createTable(File store) {
+//        Scanner scanner = null;
+//        try{
+//            scanner = new Scanner(store);
+//        }catch (FileNotFoundException e){
+//            System.err.println("Links directory corrupted: " + e);
+//            return null;
+//        }
+//        List<StoreNameLinks> table = new ArrayList<>();
+//
+//        while (scanner.hasNextLine()){
+//            String row = scanner.nextLine();
+//            String[] columns = row.split(",");
+//            table.add(new StoreNameLinks(columns[0], columns[1].replace(" ", "%20")));
+//        }
+//
+//        return table;
+//
+//    }
+
+    private void downloadFromLinks(List<StoreNameLinks> store, String destinationDir) {
 
         StringBuilder dumpsterWriter = new StringBuilder();
-        dumpsterWriter.append("G:\\Dev\\Prices\\dumpster\\"); // Enter path to dumpster dir
+        dumpsterWriter.append(destinationDir);
         int resetPath = dumpsterWriter.length();
 
         List<String> duplicate = new ArrayList<>();
@@ -61,15 +62,28 @@ public class Downloader {
         int i = 0;
         for( StoreNameLinks info : store){
             i++;
-            dumpsterWriter.append(info.getName());
+
+
+            File storeDir = new File(destinationDir+info.getStore().toString());
+            if(!storeDir.exists()){
+                if(!storeDir.mkdir()) {
+                    System.err.println("Couldn't create:" + storeDir);
+                }
+            }
+
+            dumpsterWriter.append(info.getStore().toString()).append("\\").append(info.getName());
             File currentFile = new File(dumpsterWriter.toString());
             if(currentFile.isFile()){
                 duplicate.add(info.getName());
+                dumpsterWriter.delete(dumpsterWriter.lastIndexOf("\\"), dumpsterWriter.length());
                 dumpsterWriter.setLength(resetPath);
                 continue;
             }
 
             try{
+                if(!currentFile.createNewFile()){
+                    System.err.println("Couldn't create: " + currentFile);
+                }
                 HttpClient client = HttpClient.newHttpClient();
                 HttpRequest request = HttpRequest.newBuilder().uri(URI.create(info.getLink())).build();
                 client.send(request, HttpResponse.BodyHandlers.ofFile(currentFile.toPath()));

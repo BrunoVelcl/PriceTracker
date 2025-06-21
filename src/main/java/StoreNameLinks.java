@@ -1,18 +1,42 @@
-public class StoreNameLinks {
-    private final String name;
-    private final String link;
+import java.io.Serializable;
+import java.util.List;
+import java.util.SequencedCollection;
 
-    public StoreNameLinks(String name, String link){
-        this.name = name;
+public class StoreNameLinks implements Serializable {
+    private final String fileName;
+    private final String link;
+    private final Store store;
+
+    public StoreNameLinks(String fileName, String link, Store store){
+        this.fileName = fileName;
         this.link = link;
+        this.store = store;
     }
 
     public String getName(){
-        return name;
+        return fileName;
     }
 
     public String getLink(){
         return link;
     }
 
+    public Store getStore() { return store;}
+
+    public boolean isEqual(StoreNameLinks other){
+        return (this.fileName.equals(other.fileName) & this.link.equals(other.link));
+    }
+
+    public boolean inList(List<StoreNameLinks> list){
+        if (list.isEmpty()){
+            return false;
+        }
+        for(int i = list.size() - 1; i >= 0; i--){  // hits more likely towards the end
+            if(isEqual(list.get(i))){
+                return true;
+            }
+        }
+        return false;
+    }
 }
+

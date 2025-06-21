@@ -6,29 +6,46 @@ import org.openqa.selenium.firefox.FirefoxOptions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
+import java.nio.file.Path;
 import java.time.Duration;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 
 public class LinkFetcher {
 
+    private List<StoreNameLinks> linksBin;
+    private final String linksBinDir = "links.bin";
     private final WebDriver driver;
     private final WebDriverWait driverWait;
     private final String updatedGreen = "\u001b[32mUPDATED\u001b[37m: ";
+    private final StringBuilder sb = new StringBuilder();
 
+    @SuppressWarnings("unchecked") // for the (List<StoreNameLinks>) cast
     public LinkFetcher() {
         FirefoxOptions options = new FirefoxOptions();
         options.addArguments("--headless");
         driver = new FirefoxDriver(options);
         driverWait = new WebDriverWait(driver, Duration.ofSeconds(10));
+
+       try (ObjectInputStream inputStream = new ObjectInputStream(new FileInputStream(linksBinDir))){
+           linksBin = (List<StoreNameLinks>) inputStream.readObject();
+       }catch(IOException | ClassNotFoundException e){
+            linksBin = new ArrayList<>();
+       }
+
+    }
+
+    public void writeLinksToDisk(){
+        try(ObjectOutputStream outputStream = new ObjectOutputStream(new FileOutputStream(linksBinDir))){
+            outputStream.writeObject(linksBin);
+        }catch(IOException e){
+            System.err.println("FAILED TO WRITE LINK DATA TO DISK");
+        }
     }
 
     public void getLinksKaufland() {
+        Store store = Store.KAUFLAND;
         String rootUrl = "https://www.kaufland.hr";
         String pricePageUrl = "https://www.kaufland.hr/akcije-novosti/popis-mpc.html";
 
@@ -41,35 +58,19 @@ public class LinkFetcher {
 
         List<WebElement> links = driver.findElements(By.partialLinkText(".csv"));
 
-        String filePath = "G:\\Dev\\Prices\\links\\kaufland.csv";
+        for (WebElement link : links) {
+            sb.setLength(0);
+            sb.append(rootUrl).append(link.getDomAttribute("href"));
+            cleanURL(sb);
 
-        File file = new File(filePath);
-
-        StringBuilder sb = new StringBuilder();
-
-        try (FileWriter writer = new FileWriter(file)) {
-            for (WebElement link : links) {
-
-                sb.append(link.getAccessibleName()).deleteCharAt(0)
-                        .append(",")
-                        .append(rootUrl)
-                        .append(link.getDomAttribute("href"))
-                        .append("\n");
-
-                //Cleans the URL if there are white spaces.
-                for (int i = Objects.requireNonNull(link.getAccessibleName()).length(); i < sb.length(); i++) {
-                    if (sb.charAt(i) == ' ') {
-                        sb.deleteCharAt(i);
-                        sb.insert(i, "%20");
-                        i += 2;
-                    }
-                }
-
-                writer.write(sb.toString());
-                sb.setLength(0);
+            StoreNameLinks storeLink = new StoreNameLinks(
+                    Objects.requireNonNull(link.getAccessibleName()).substring(1),
+                    sb.toString(),
+                    store
+            );
+            if(storeLink.inList(linksBin)) {
+                linksBin.add(storeLink);
             }
-        } catch (IOException e) {
-            System.err.println("Can't write to: " + filePath);
         }
 
         driver.quit();
@@ -78,8 +79,44 @@ public class LinkFetcher {
 
     }
 
-    public void getLinksLidl() {
+    public void getLinksSpar(){
+        Store store = Store.SPAR;
+        String rootUrl = "https://www.spar.hr/";
+        String pricePageUrl = "https://www.spar.hr/usluge/cjenici";
 
+        driver.get(pricePageUrl);
+        driver.switchTo().frame(4);
+        driverWait.until(ExpectedConditions.presenceOfElementLocated(By.linkText("Preuzmi")));
+
+        System.out.printf("Waiting on: %s\r", rootUrl);
+
+        List<WebElement> links = driver.findElements(By.linkText("Preuzmi"));
+
+        for (WebElement link : links) {
+            sb.setLength(0);
+            sb.append(link.getDomAttribute("href"));
+            sb.delete(0,sb.lastIndexOf("/")+1);
+            cleanURL(sb);
+
+            StoreNameLinks storeLink = new StoreNameLinks(
+                    sb.toString(),
+                    link.getDomAttribute("href"),
+                    store
+            );
+
+            if(storeLink.inList(linksBin)) {
+                linksBin.add(storeLink);
+            }
+        }
+
+        driver.quit();
+
+        System.out.println(updatedGreen + rootUrl);
+
+    }
+    
+    public void getLinksLidl() {
+        Store store = Store.LIDL;
         String rootUrl = "https://www.lidl.hr/";
         String pricePageUrl = "https://tvrtka.lidl.hr/cijene";
 
@@ -93,20 +130,19 @@ public class LinkFetcher {
 
         List<WebElement> links = driver.findElements(By.partialLinkText("ovdje"));
         links.removeLast(); //there is something else on the site with the same link text
-
-        String filePath = "G:\\Dev\\Prices\\links\\lidl.csv";
-
-        File file = new File(filePath);
-        String link = links.getLast().getDomAttribute("href");
-        if (link == null) {
+        
+        String linkStr = links.getLast().getDomAttribute("href");
+        sb.setLength(0);
+        sb.append(linkStr);
+        if (sb.isEmpty()) {
             System.err.println("Failed to get link for: " + rootUrl);
             return;
         }
+        sb.delete(0,sb.lastIndexOf("/")+1);
 
-        try (FileWriter writer = new FileWriter(file)) {
-            writer.write("Lidl.zip," + link);
-        } catch (IOException e) {
-            System.err.println("Can't write to: " + filePath);
+        StoreNameLinks storeLink = new StoreNameLinks(sb.toString(),linkStr,store);
+        if(storeLink.inList(linksBin)) {
+            linksBin.add(storeLink);
         }
 
         System.out.println(updatedGreen + rootUrl);
@@ -114,6 +150,7 @@ public class LinkFetcher {
     }
 
     public void getLinksPlodine() {
+        Store store = Store.PLODINE;
         String rootUrl = "https://www.plodine.hr/";
         String pricePageUrl = "https://www.plodine.hr/info-o-cijenama";
 
@@ -126,26 +163,27 @@ public class LinkFetcher {
         System.out.printf("Waiting on: %s\r", rootUrl);
 
         List<WebElement> links = driver.findElements(By.cssSelector("a[href$='.zip']"));
-
-        String filePath = "G:\\Dev\\Prices\\links\\plodine.csv";
-        String link = links.getFirst().getDomAttribute("href");
-        if (link == null) {
+        
+        String linkStr = links.getFirst().getDomAttribute("href");
+        sb.setLength(0);
+        sb.append(linkStr);
+        if (sb.isEmpty()) {
             System.err.println("Failed to get link for: " + rootUrl);
             return;
         }
+        sb.delete(0,sb.lastIndexOf("/")+1);
 
-        File file = new File(filePath);
-        try(FileWriter writer = new FileWriter(file)){
-            writer.write("Plodine.zip," + link);
-        }catch(IOException e){
-            System.err.println("Can't write to: " + filePath);
+        StoreNameLinks storeLink = new StoreNameLinks(sb.toString(),linkStr,store);
+        if(storeLink.inList(linksBin)) {
+            linksBin.add(storeLink);
         }
-
+        
         System.out.println(updatedGreen + rootUrl);
         driver.quit();
     }
 
     public void getLinksStudenac(){
+        Store store = Store.STUDENAC;
         String rootUrl = "https://www.studenac.hr/";
         String pricePageUrl = "https://www.studenac.hr/popis-maloprodajnih-cijena";
 
@@ -154,72 +192,35 @@ public class LinkFetcher {
         System.out.printf("Waiting on: %s\r", rootUrl);
 
         List<WebElement> links = driver.findElements(By.cssSelector("a[href$='.zip']"));
-
-        String filePath = "G:\\Dev\\Prices\\links\\studenac.csv";
-
-        String link = links.getFirst().getDomAttribute("href");
-        if (link == null) {
+        
+        String linkStr = links.getFirst().getDomAttribute("href");
+        sb.setLength(0);
+        sb.append(linkStr);
+        if (sb.isEmpty()) {
             System.err.println("Failed to get link for: " + rootUrl);
             return;
         }
+        sb.delete(0,sb.lastIndexOf("/")+1);
 
-        File file = new File(filePath);
-
-        try(FileWriter writer = new FileWriter(file)){
-            writer.write("Studenac.zip," + link);
-        }catch(IOException e){
-            System.err.println("Can't write to: " + filePath);
+        StoreNameLinks storeLink = new StoreNameLinks(sb.toString(),linkStr,store);
+        if(storeLink.inList(linksBin)) {
+            linksBin.add(storeLink);
         }
-
+        
         System.out.println(updatedGreen + rootUrl);
         driver.quit();
     }
 
-    public void getLinksSpar(){
-        String rootUrl = "https://www.spar.hr/";
-        String pricePageUrl = "https://www.spar.hr/usluge/cjenici";
-
-        driver.get(pricePageUrl);
-        driver.switchTo().frame(4);
-        driverWait.until(ExpectedConditions.presenceOfElementLocated(By.linkText("Preuzmi")));
-
-        System.out.printf("Waiting on: %s\r", rootUrl);
-
-        List<WebElement> links = driver.findElements(By.linkText("Preuzmi"));
-
-        String filePath = "G:\\Dev\\Prices\\links\\spar.csv";
-
-        File file = new File(filePath);
-
-        StringBuilder sb = new StringBuilder();
-
-        try (FileWriter writer = new FileWriter(file)) {
-            for (WebElement link : links) {
-
-                sb.append(Objects.requireNonNull(link.getDomAttribute("href")).substring(37))
-                        .append(",")
-                        .append(link.getDomAttribute("href"))
-                        .append("\n");
-
-                //Cleans the URL if there are white spaces.
-                for (int i = 0; i < sb.length(); i++) {
-                    if (sb.charAt(i) == ' ') {
-                        sb.deleteCharAt(i);
-                        sb.insert(i, "%20");
-                        i += 2;
-                    }
-                }
-
-                writer.write(sb.toString());
-                sb.setLength(0);
+    private void cleanURL(StringBuilder url) {
+        //Cleans the URL if there are white spaces.
+        for (int i = 0; i < url.length(); i++) {
+            if (url.charAt(i) == ' ') {
+                url.deleteCharAt(i);
+                url.insert(i, "%20");
+                i += 2;
             }
-        } catch (IOException e) {
-            System.err.println("Can't write to: " + filePath);
+
         }
-
-        driver.quit();
-
-        System.out.println(updatedGreen + rootUrl);
-
     }
+
 }
