@@ -63,7 +63,6 @@ public class Downloader {
         for( StoreNameLinks info : store){
             i++;
 
-
             File storeDir = new File(destinationDir+info.getStore().toString());
             if(!storeDir.exists()){
                 if(!storeDir.mkdir()) {
@@ -88,6 +87,10 @@ public class Downloader {
                 HttpRequest request = HttpRequest.newBuilder().uri(URI.create(info.getLink())).build();
                 client.send(request, HttpResponse.BodyHandlers.ofFile(currentFile.toPath()));
                 client.close();
+                if (dumpsterWriter.substring(dumpsterWriter.length() - 4, dumpsterWriter.length()).equals(".zip")){
+                    dumpsterWriter.setLength(dumpsterWriter.lastIndexOf("\\")+1);
+                    Unzipper.unzipAllInDir(dumpsterWriter.toString());
+                }
                 downloaded.add(info.getName());
                 System.out.printf("Downloading %d/%d \r", i, store.size());
                 System.out.flush();

@@ -1,14 +1,10 @@
 public class Main {
     public static void main(String[] args) {
-
-        LinkFetcher k = new LinkFetcher();
-        k.getLinksSpar();
-        k.writeLinksToDisk();
-        Downloader download = new Downloader();
-        download.download();
-
-       //Unzipper.unzipAllInDir();
-
-
+        HunterGatherer hunter = new HunterGatherer();
+        hunter.run();
     }
 }
+
+//TODO: add timed tasks, add timestamp to StoreNameLinks
+//TODO: add automatic cleanup
+//TODO: check Kaufland links lol

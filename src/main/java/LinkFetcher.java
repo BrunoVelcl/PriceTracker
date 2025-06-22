@@ -1,4 +1,5 @@
 import org.openqa.selenium.By;
+import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.firefox.FirefoxDriver;
@@ -11,7 +12,7 @@ import java.nio.file.Path;
 import java.time.Duration;
 import java.util.*;
 
-
+//**Caller owns the driver, must call .free when done with the object instance*/
 public class LinkFetcher {
 
     private List<StoreNameLinks> linksBin;
@@ -44,6 +45,15 @@ public class LinkFetcher {
         }
     }
 
+
+    public void free(){
+        driver.quit();
+    }
+
+    public List<StoreNameLinks> getLinksBin(){
+        return linksBin;
+    }
+
     public void getLinksKaufland() {
         Store store = Store.KAUFLAND;
         String rootUrl = "https://www.kaufland.hr";
@@ -68,12 +78,10 @@ public class LinkFetcher {
                     sb.toString(),
                     store
             );
-            if(storeLink.inList(linksBin)) {
+            if(!storeLink.inList(linksBin)) {
                 linksBin.add(storeLink);
             }
         }
-
-        driver.quit();
 
         System.out.println(updatedGreen + rootUrl);
 
@@ -86,8 +94,12 @@ public class LinkFetcher {
 
         driver.get(pricePageUrl);
         driver.switchTo().frame(4);
-        driverWait.until(ExpectedConditions.presenceOfElementLocated(By.linkText("Preuzmi")));
-
+        try {
+            driverWait.until(ExpectedConditions.presenceOfElementLocated(By.linkText("Preuzmi")));
+        }catch (Exception e){
+            System.out.println("SPAR page timeout");
+            return;
+        }
         System.out.printf("Waiting on: %s\r", rootUrl);
 
         List<WebElement> links = driver.findElements(By.linkText("Preuzmi"));
@@ -104,12 +116,10 @@ public class LinkFetcher {
                     store
             );
 
-            if(storeLink.inList(linksBin)) {
+            if(!storeLink.inList(linksBin)) {
                 linksBin.add(storeLink);
             }
         }
-
-        driver.quit();
 
         System.out.println(updatedGreen + rootUrl);
 
@@ -141,12 +151,11 @@ public class LinkFetcher {
         sb.delete(0,sb.lastIndexOf("/")+1);
 
         StoreNameLinks storeLink = new StoreNameLinks(sb.toString(),linkStr,store);
-        if(storeLink.inList(linksBin)) {
+        if(!storeLink.inList(linksBin)) {
             linksBin.add(storeLink);
         }
 
         System.out.println(updatedGreen + rootUrl);
-        driver.quit();
     }
 
     public void getLinksPlodine() {
@@ -174,12 +183,11 @@ public class LinkFetcher {
         sb.delete(0,sb.lastIndexOf("/")+1);
 
         StoreNameLinks storeLink = new StoreNameLinks(sb.toString(),linkStr,store);
-        if(storeLink.inList(linksBin)) {
+        if(!storeLink.inList(linksBin)) {
             linksBin.add(storeLink);
         }
         
         System.out.println(updatedGreen + rootUrl);
-        driver.quit();
     }
 
     public void getLinksStudenac(){
@@ -203,12 +211,11 @@ public class LinkFetcher {
         sb.delete(0,sb.lastIndexOf("/")+1);
 
         StoreNameLinks storeLink = new StoreNameLinks(sb.toString(),linkStr,store);
-        if(storeLink.inList(linksBin)) {
+        if(!storeLink.inList(linksBin)) {
             linksBin.add(storeLink);
         }
         
         System.out.println(updatedGreen + rootUrl);
-        driver.quit();
     }
 
     private void cleanURL(StringBuilder url) {
