@@ -1,8 +1,6 @@
-
 import java.io.*;
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.Scanner;
 import java.util.List;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -29,26 +27,6 @@ public class Downloader {
     public void download(){
         download("G:\\Dev\\Prices\\dumpster\\");
     }
-
-//    private List<StoreNameLinks> createTable(File store) {
-//        Scanner scanner = null;
-//        try{
-//            scanner = new Scanner(store);
-//        }catch (FileNotFoundException e){
-//            System.err.println("Links directory corrupted: " + e);
-//            return null;
-//        }
-//        List<StoreNameLinks> table = new ArrayList<>();
-//
-//        while (scanner.hasNextLine()){
-//            String row = scanner.nextLine();
-//            String[] columns = row.split(",");
-//            table.add(new StoreNameLinks(columns[0], columns[1].replace(" ", "%20")));
-//        }
-//
-//        return table;
-//
-//    }
 
     private void downloadFromLinks(List<StoreNameLinks> store, String destinationDir) {
 
