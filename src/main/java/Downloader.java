@@ -40,7 +40,7 @@ public class Downloader {
             System.err.println("FAILED TO WRITE LINK DATA TO DISK");
         }
 
-        System.out.println("\u001b[32mDOWNLOAD COMPLETE\u001b[37m");
+        System.out.println("\u001b[32mUPDATE COMPLETE\u001b[37m");
     }
 
     //TODO: DELETE, this bullshit shouldn't exist
