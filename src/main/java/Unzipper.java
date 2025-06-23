@@ -26,10 +26,10 @@ public class Unzipper {
                     System.err.println("Failed to create input stream");
                     return;
                 }
-//                if(!file.delete()){
-//                    System.err.println("Unzipping process couldn't delete file: " + filename);
-//                }
-                System.out.println("\u001b[32mUNZIPED\u001b[37m: " + filename);
+                if(!file.delete()){
+                    System.err.println("Unzipping process couldn't delete file: " + filename);
+                }
+                //System.out.println("\u001b[32mUNZIPED\u001b[33m: " + filename);
             }
         }
     }

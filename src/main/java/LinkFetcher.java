@@ -15,43 +15,49 @@ import java.util.*;
 //**Caller owns the driver, must call .free when done with the object instance*/
 public class LinkFetcher {
 
-    private List<StoreNameLinks> linksBin;
-    private final String linksBinDir = "links.bin";
+    private List<StoreNameLinks> newLinks;
+    private final List<StoreNameLinks> existingLinks;
+    //private final String linksBinDir = "links.bin";
     private final WebDriver driver;
     private final WebDriverWait driverWait;
-    private final String updatedGreen = "\u001b[32mUPDATED\u001b[37m: ";
+    private final String updatedGreen = "\u001b[34mRETRIVED LINKS\u001b[37m: ";
     private final StringBuilder sb = new StringBuilder();
 
-    @SuppressWarnings("unchecked") // for the (List<StoreNameLinks>) cast
-    public LinkFetcher() {
+
+    public LinkFetcher(List<StoreNameLinks> existingLinks) {
+        this.newLinks = new ArrayList<>();
+        this.existingLinks = existingLinks;
         FirefoxOptions options = new FirefoxOptions();
         options.addArguments("--headless");
-        driver = new FirefoxDriver(options);
-        driverWait = new WebDriverWait(driver, Duration.ofSeconds(10));
-
-       try (ObjectInputStream inputStream = new ObjectInputStream(new FileInputStream(linksBinDir))){
-           linksBin = (List<StoreNameLinks>) inputStream.readObject();
-       }catch(IOException | ClassNotFoundException e){
-            linksBin = new ArrayList<>();
-       }
-
+        this.driver = new FirefoxDriver(options);
+        this.driverWait = new WebDriverWait(driver, Duration.ofSeconds(10));
     }
 
-    public void writeLinksToDisk(){
-        try(ObjectOutputStream outputStream = new ObjectOutputStream(new FileOutputStream(linksBinDir))){
-            outputStream.writeObject(linksBin);
-        }catch(IOException e){
-            System.err.println("FAILED TO WRITE LINK DATA TO DISK");
-        }
+    public LinkFetcher(){
+        this(new ArrayList<>());
     }
-
 
     public void free(){
         driver.quit();
     }
 
-    public List<StoreNameLinks> getLinksBin(){
-        return linksBin;
+    public List<StoreNameLinks> getNewLinks(){
+        return newLinks;
+    }
+
+    public static List<StoreNameLinks> getAllStores(List<StoreNameLinks> existingLinks){
+        LinkFetcher linkFetcher = new LinkFetcher(existingLinks);
+        linkFetcher.getLinksLidl();
+        linkFetcher.getLinksPlodine();
+        linkFetcher.getLinksStudenac();
+        linkFetcher.getLinksSpar();
+        linkFetcher.getLinksKaufland();
+        linkFetcher.free();
+        return linkFetcher.newLinks;
+    }
+
+    public static List<StoreNameLinks> getAllStores(){
+        return getAllStores(new ArrayList<>());
     }
 
     public void getLinksKaufland() {
@@ -59,12 +65,12 @@ public class LinkFetcher {
         String rootUrl = "https://www.kaufland.hr";
         String pricePageUrl = "https://www.kaufland.hr/akcije-novosti/popis-mpc.html";
 
+        System.out.printf("Waiting on: %s\r", rootUrl);
         driver.get(pricePageUrl);
         WebElement cookieButton = driver.findElement(By.id("onetrust-accept-btn-handler"));
         cookieButton.click();
 
         driverWait.until(ExpectedConditions.presenceOfElementLocated(By.partialLinkText(".csv")));
-        System.out.printf("Waiting on: %s\r", rootUrl);
 
         List<WebElement> links = driver.findElements(By.partialLinkText(".csv"));
 
@@ -78,8 +84,8 @@ public class LinkFetcher {
                     sb.toString(),
                     store
             );
-            if(!storeLink.inList(linksBin)) {
-                linksBin.add(storeLink);
+            if(!storeLink.inList(existingLinks)) {
+                newLinks.add(storeLink);
             }
         }
 
@@ -92,6 +98,7 @@ public class LinkFetcher {
         String rootUrl = "https://www.spar.hr/";
         String pricePageUrl = "https://www.spar.hr/usluge/cjenici";
 
+        System.out.printf("Waiting on: %s\r", rootUrl);
         driver.get(pricePageUrl);
         driver.switchTo().frame(4);
         try {
@@ -100,7 +107,6 @@ public class LinkFetcher {
             System.out.println("SPAR page timeout");
             return;
         }
-        System.out.printf("Waiting on: %s\r", rootUrl);
 
         List<WebElement> links = driver.findElements(By.linkText("Preuzmi"));
 
@@ -116,31 +122,31 @@ public class LinkFetcher {
                     store
             );
 
-            if(!storeLink.inList(linksBin)) {
-                linksBin.add(storeLink);
+            if(!storeLink.inList(existingLinks)) {
+                newLinks.add(storeLink);
             }
         }
 
         System.out.println(updatedGreen + rootUrl);
 
     }
-    
+
     public void getLinksLidl() {
         Store store = Store.LIDL;
         String rootUrl = "https://www.lidl.hr/";
         String pricePageUrl = "https://tvrtka.lidl.hr/cijene";
 
+        System.out.printf("Waiting on: %s\r", rootUrl);
         driver.get(pricePageUrl);
         driverWait.until(ExpectedConditions.presenceOfElementLocated(By.id("onetrust-accept-btn-handler")));
         WebElement cookieButton = driver.findElement(By.id("onetrust-accept-btn-handler"));
         cookieButton.click();
 
         driverWait.until(ExpectedConditions.presenceOfElementLocated(By.partialLinkText("ovdje")));
-        System.out.printf("Waiting on: %s\r", rootUrl);
 
         List<WebElement> links = driver.findElements(By.partialLinkText("ovdje"));
         links.removeLast(); //there is something else on the site with the same link text
-        
+
         String linkStr = links.getLast().getDomAttribute("href");
         sb.setLength(0);
         sb.append(linkStr);
@@ -151,8 +157,8 @@ public class LinkFetcher {
         sb.delete(0,sb.lastIndexOf("/")+1);
 
         StoreNameLinks storeLink = new StoreNameLinks(sb.toString(),linkStr,store);
-        if(!storeLink.inList(linksBin)) {
-            linksBin.add(storeLink);
+        if(!storeLink.inList(existingLinks)) {
+            newLinks.add(storeLink);
         }
 
         System.out.println(updatedGreen + rootUrl);
@@ -163,16 +169,16 @@ public class LinkFetcher {
         String rootUrl = "https://www.plodine.hr/";
         String pricePageUrl = "https://www.plodine.hr/info-o-cijenama";
 
+        System.out.printf("Waiting on: %s\r", rootUrl);
         driver.get(pricePageUrl);
         driverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//button[text()='Prihvaćam']")));
         WebElement cookieButton = driver.findElement(By.xpath("//button[text()='Prihvaćam']"));
         cookieButton.click();
 
         driverWait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("a[href$='.zip']")));
-        System.out.printf("Waiting on: %s\r", rootUrl);
 
         List<WebElement> links = driver.findElements(By.cssSelector("a[href$='.zip']"));
-        
+
         String linkStr = links.getFirst().getDomAttribute("href");
         sb.setLength(0);
         sb.append(linkStr);
@@ -183,10 +189,10 @@ public class LinkFetcher {
         sb.delete(0,sb.lastIndexOf("/")+1);
 
         StoreNameLinks storeLink = new StoreNameLinks(sb.toString(),linkStr,store);
-        if(!storeLink.inList(linksBin)) {
-            linksBin.add(storeLink);
+        if(!storeLink.inList(existingLinks)) {
+            newLinks.add(storeLink);
         }
-        
+
         System.out.println(updatedGreen + rootUrl);
     }
 
@@ -195,12 +201,12 @@ public class LinkFetcher {
         String rootUrl = "https://www.studenac.hr/";
         String pricePageUrl = "https://www.studenac.hr/popis-maloprodajnih-cijena";
 
+        System.out.printf("Waiting on: %s\r", rootUrl);
         driver.get(pricePageUrl);
         driverWait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("a[href$='.zip']")));
-        System.out.printf("Waiting on: %s\r", rootUrl);
 
         List<WebElement> links = driver.findElements(By.cssSelector("a[href$='.zip']"));
-        
+
         String linkStr = links.getFirst().getDomAttribute("href");
         sb.setLength(0);
         sb.append(linkStr);
@@ -211,8 +217,8 @@ public class LinkFetcher {
         sb.delete(0,sb.lastIndexOf("/")+1);
 
         StoreNameLinks storeLink = new StoreNameLinks(sb.toString(),linkStr,store);
-        if(!storeLink.inList(linksBin)) {
-            linksBin.add(storeLink);
+        if(!storeLink.inList(existingLinks)) {
+            newLinks.add(storeLink);
         }
         
         System.out.println(updatedGreen + rootUrl);
