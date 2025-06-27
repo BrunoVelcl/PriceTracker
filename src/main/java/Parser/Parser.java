@@ -12,8 +12,5 @@ public abstract class Parser {
     protected final String userName = "postgres";
     protected final String password = "1410"; // TODO: what? is something wrong?
     protected File[] fileList;
-    // Parsed data should always be [barcode, price, name, brand, unit_quantity, unit]
-    protected List<String[]> parsedData;
-    protected String[] storeInfo;
 
 }

@@ -18,9 +18,10 @@ import java.util.concurrent.Executors;
 
 
 public class ParserLidl extends Parser{
-
+    private final Integer chain_id = 1;
     ExecutorService executor =  Executors.newFixedThreadPool(14);
-
+    String storeAddress;
+    Integer storeID;
 
     public ParserLidl(File storeDir){
         this.fileList = storeDir.listFiles();
@@ -32,12 +33,32 @@ public class ParserLidl extends Parser{
     public void run() throws SQLException {
 
 
+
         //Find all files in dir
         for(File file : this.fileList){
+
+            // Address extraction
+            storeAddress = parseAddress(file ,new StringBuilder());
+            if(storeAddress == null){
+                System.err.println("Couldn't parse address for file: " + file.getAbsolutePath());
+                return;
+            }
+
             executor.submit(() -> {
                 try {
                     Connection connection = DriverManager.getConnection(this.server, this.userName, this.password);
                     System.out.println("Database connection established...");
+                    //Check if store exists in database and add if it doesn't
+                    if(!Queries.storeInDatabase(storeAddress, connection)){
+                        Queries.insertStore(storeAddress, "1", connection);
+                    }
+                    if(storeID == null) {
+                        try {
+                            storeID = Integer.parseInt(Queries.findStoreByAddress(storeAddress, connection)[0]);
+                        } catch (NumberFormatException e) {
+                            System.err.println("Couldn't parse store ID for file: " + file.getAbsolutePath());
+                        }
+                    }
                     processLoop(file, connection);
                 } catch (SQLException e) {
                     throw new RuntimeException(e);
@@ -49,7 +70,7 @@ public class ParserLidl extends Parser{
 
     }
 
-    private List<String[]> parse(String data, StringBuilder sb){
+    private List<ParsedValues> parse(String data, StringBuilder sb){
         sb.setLength(0);
         CroCharMap croMap = new CroCharMap();
         boolean quotes = false;
@@ -57,11 +78,17 @@ public class ParserLidl extends Parser{
         char delimiter = 0x2c;
         int start = data.indexOf(0x0a) + 1;
         int c = 0;
-        String[] temp = new String[6];
-        List<String[]> parsed = new ArrayList<>();
+        ParsedValues temp;
+        List<ParsedValues> parsedValues = new ArrayList<>();
+        Long barcode = null;
+        Double price = null;
+        String productName = null;
+        String brand = null;
+        String unit_quantity = null;
+        String unit = null;
+
         for(int i = start; i < data.length(); i ++){
 
-            //Dealing with quotes
             char cursor = data.charAt(i);
             if(cursor == '"'){
                 quotes = !quotes;
@@ -71,14 +98,15 @@ public class ParserLidl extends Parser{
             }
 
             if(cursor == delimiter) {
+
                 sb.setLength(0);
                 switch (c) {
-                    case 0 -> temp[2] = croMap.replaceString(sb.append(data, start, i));
-                    case 2 -> temp[4] = data.substring(start, i);
-                    case 3 -> temp[5] = data.substring(start, i);
-                    case 4 -> temp[3] = croMap.replaceString(sb.append(data, start, i));
-                    case 5 -> temp[1] = data.substring(start, i);
-                    case 9 -> temp[0] = data.substring(start, i);
+                    case 0 -> productName = croMap.replaceString(sb.append(data, start, i));
+                    case 2 -> unit_quantity = data.substring(start, i);
+                    case 3 -> unit  = data.substring(start, i);
+                    case 4 -> brand = croMap.replaceString(sb.append(data, start, i));
+                    case 5 -> price = Double.parseDouble(data.substring(start, i ));
+                    case 9 -> barcode = Long.parseLong(data.substring(start, i));
                 }
                 c++;
                 start = i+1;
@@ -86,11 +114,15 @@ public class ParserLidl extends Parser{
             if(cursor == newLine){
                 c = 0;
                 start = i+1;
-                parsed.add(temp);
-                temp = new String[6];
+
+                ParsedValues pv = new ParsedValues(barcode, price, productName,brand,unit_quantity, unit, storeAddress, storeID, chain_id);
+                if(!pv.isValidInput()){
+                    continue;
+                }
+                parsedValues.add(pv);
             }
         }
-        return parsed;
+        return parsedValues;
     }
 
     public static String parseAddress(File file, StringBuilder sb) {
@@ -124,43 +156,18 @@ public class ParserLidl extends Parser{
             return;
         }
 
-        // Address extraction
-        String storeAddress = parseAddress(file,sb);
-        if(storeAddress == null){
-            System.err.println("Couldn't parse address for file: " + file.getAbsolutePath());
-            return;
-        }
-        if(!Queries.storeInDatabase(storeAddress, connection)){
-            Queries.insertStore(storeAddress, "1", connection);
-        }
+        List<ParsedValues> parsedData = parse(data, sb);
 
-        // storeInfo[id, chain_id]
-        this.storeInfo = Queries.findStoreByAddress(storeAddress, connection);
-        this.parsedData = parse(data, sb);
+        // Check if products exists and add it if it doesn't
+        Queries.insertNewProducts(parsedData , connection);
 
-        // Loop through all lines
-        for(String[] line : parsedData){
-            //Check if there is a barcode and discard if not
-            if(line[0].isEmpty()){
-                continue;
-            }
-            //Check if price is set,
-            if(line[1].isEmpty()){
-                line[1] = "-1";
-            }
-            // Check if product exists and add it if it doesn't
-            if(!Queries.productInDatabase(line[0], connection)){
-                Queries.insertProduct(line[0], line[2], line[3], line[4], line[5], connection);
-            }
-            //Check if price is up to date and add a new entry if not
-            if(!Queries.priceIsUpToDate(line[0],line[1],connection)){
-                Queries.insertPrice(line[1], line[0],storeInfo[0], connection);
-            }
-        }
+        //Check if price is up to date and add a new entry if not
+
+        Queries.insertPrice(parsedData, connection);
+
         if(!file.delete()){
             System.err.println("Couldn't delete file: " + file.getAbsolutePath());
         };
-
     }
 
 }

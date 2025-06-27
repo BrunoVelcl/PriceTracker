@@ -3,17 +3,13 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.List;
 
 public class Queries {
 
     // Update database with new price
-    public static void insertPrice(String price, String barcode, String store, Connection connection) throws SQLException {
-        String query = "INSERT INTO prices (price, product_ID ,store_id) VALUES (?,?,?)";
-        PreparedStatement ps = connection.prepareStatement(query);
-        ps.setDouble(1,Double.parseDouble(price));
-        ps.setLong(2,Long.parseLong(barcode));
-        ps.setInt(3, Integer.parseInt(store));
-        ps.executeUpdate();
+    public static void insertPrice(List<ParsedValues> parsedValues, Connection connection) throws SQLException {
+    //TODO: check if price is curent and INSERT if it isnt
     }
 
     // Insert new product into database
@@ -56,10 +52,10 @@ public class Queries {
     }
 
     // Returns true is product already exists in db
-    public static boolean productInDatabase(String barcode, Connection connection)throws SQLException{
+    public static boolean productInDatabase(ParsedValues pv, Connection connection)throws SQLException{
         String query = "SELECT * FROM products WHERE id = ?";
         PreparedStatement ps = connection.prepareStatement(query);
-        ps.setLong(1,Long.parseLong(barcode));
+        ps.setLong(1,pv.getBarcode());
         ResultSet rs = ps.executeQuery();
         return rs.next();
     }
@@ -97,5 +93,9 @@ public class Queries {
         }
         return false;
     };
+
+    public static void insertNewProducts(List<ParsedValues> pv, Connection connection) throws SQLException{
+        //TODO: batch transaction, check if product exists and if not INSERT it
+    }
 
 }
