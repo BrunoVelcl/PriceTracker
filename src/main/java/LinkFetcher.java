@@ -17,7 +17,6 @@ public class LinkFetcher {
 
     private List<StoreNameLinks> newLinks;
     private final List<StoreNameLinks> existingLinks;
-    //private final String linksBinDir = "links.bin";
     private final WebDriver driver;
     private final WebDriverWait driverWait;
     private final String updatedGreen = "\u001b[34mRETRIVED LINKS\u001b[37m: ";
