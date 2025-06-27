@@ -1,27 +1,37 @@
-CREATE TABLE `chains`(
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `name` VARCHAR(50) NOT NULL,
-    `url` VARCHAR(100)
-    
+CREATE TYPE unit AS ENUM ('KOM', 'KG');
+
+CREATE TABLE chains(
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    name VARCHAR(50) NOT NULL,
+    url VARCHAR(100)
 );
 
-CREATE TABLE `stores`(
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `address` VARCHAR(100) NOT NULL,
-    `chain` VARCHAR(50) NOT NULL,
-    FOREIGN KEY (`chain`) REFERENCES `chains`.(`id`)
+CREATE TABLE stores(
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    address VARCHAR(100) NOT NULL,
+    chain_id INT NOT NULL,
+    FOREIGN KEY (chain_id) REFERENCES chains(id)
 );
 
-CREATE TABLE `products`(
-    `id` INT UNSIGNED PRIMARY KEY, -- id by barcode
-    `name` VARCHAR(100) NOT NULL,
-    `brand` VARCHAR(50),
-    `price` NUMERIC(6,2) NOT NULL,
-    `quantity` VARCHAR (10),
-    `quantity_unit` unit,
-    FOREIGN KEY (`store_id`) REFERENCES `stores`.(`id`)
-    
+CREATE TABLE products(
+    id INT UNIQUE PRIMARY KEY, -- id by barcode
+    name VARCHAR(100) NOT NULL,
+    brand VARCHAR(50),
+    unit_quantity VARCHAR (10),
+    unit unit
 );
 
+CREATE TABLE prices(
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    price NUMERIC(8,2),
+    store_id INT NOT NULL,
+    product_id INT NOT NULL,
+    FOREIGN KEY (store_id) REFERENCES stores(id),
+    FOREIGN KEY (product_id) REFERENCES products(id)
+);
 
-CREATE TYPE unit AS ENUM (`KOM`, `KG`);
+INSERT INTO chains (name, url) VALUES('LIDL', 'https://www.lidl.hr/' );
+INSERT INTO chains (name, url) VALUES('KAUFLAND', 'https://www.kaufland.hr' );
+INSERT INTO chains (name, url) VALUES('PLODINE', 'https://www.plodine.hr' );
+INSERT INTO chains (name, url) VALUES('SPAR', 'https://www.spar.hr' );
+INSERT INTO chains (name, url) VALUES('STUDENAC', 'https://www.studenac.hr' );
