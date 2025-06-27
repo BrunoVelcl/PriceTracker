@@ -2,6 +2,7 @@ package Parser;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 
 import java.sql.DriverManager;
@@ -11,58 +12,41 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-
-
-
+import FileFetcher.StoreNameLinks;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 
 public class ParserLidl extends Parser{
+
+    ExecutorService executor =  Executors.newFixedThreadPool(14);
+
 
     public ParserLidl(File storeDir){
         this.fileList = storeDir.listFiles();
     }
     //TODO: change this!
     public ParserLidl(){
-        this( new File("\\dumpster\\Lidl"));
+        this( new File("G:\\Dev\\Prices\\dumpster\\LIDL"));
     }
-    public void run(List<StoreNameLinks>) throws SQLException {
+    public void run() throws SQLException {
 
-        //Establish db connection
-        try{
-            this.connection = DriverManager.getConnection(this.server, this.userName, this.password);
-            System.out.println("Database connection established...");
-        }catch(SQLException e){
-            System.err.println("Unable to establish PostgreSQL connection.");
-            return;
-        }
 
         //Find all files in dir
         for(File file : this.fileList){
-            String data;
-            try {
-                data = Files.readString(file.toPath());
-            }catch (IOException e){
-                System.err.println("Couldn't find file to parse: " + file.getAbsolutePath());
-                continue;
-            }
-
-            // Address extraction
-            this.storeAddress = parseAddress(file, sb);
-            if(this.storeAddress == null){
-                System.err.println("Couldn't parse address for file: " + file.getAbsolutePath());
-                continue;
-            }
-            if(!Queries.storeInDatabase(this.storeAddress, this.connection)){
-                Queries.insertStore(this.storeAddress, "1", connection);
-            }
-            // storeInfo[id, chain_id]
-            this.storeInfo = Queries.findStoreByAddress(this.storeAddress, connection);
-            this.parsedData = parse(data, this.sb);
-
-            for(String[] line : parsedData){
-
-            }
+            executor.submit(() -> {
+                try {
+                    Connection connection = DriverManager.getConnection(this.server, this.userName, this.password);
+                    System.out.println("Database connection established...");
+                    processLoop(file, connection);
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
+            });
         }
+        executor.shutdown();
+
+
     }
 
     private List<String[]> parse(String data, StringBuilder sb){
@@ -127,6 +111,56 @@ public class ParserLidl extends Parser{
             }
         }
         return null;
+    }
+
+    private void processLoop(File file, Connection connection)throws SQLException{
+        //Find all files in dir
+        StringBuilder sb = new StringBuilder();
+        String data;
+        try {
+            data = Files.readString(file.toPath(), StandardCharsets.ISO_8859_1);
+        }catch (IOException e){
+            System.err.println("Couldn't find file to parse: " + file.getAbsolutePath());
+            return;
+        }
+
+        // Address extraction
+        String storeAddress = parseAddress(file,sb);
+        if(storeAddress == null){
+            System.err.println("Couldn't parse address for file: " + file.getAbsolutePath());
+            return;
+        }
+        if(!Queries.storeInDatabase(storeAddress, connection)){
+            Queries.insertStore(storeAddress, "1", connection);
+        }
+
+        // storeInfo[id, chain_id]
+        this.storeInfo = Queries.findStoreByAddress(storeAddress, connection);
+        this.parsedData = parse(data, sb);
+
+        // Loop through all lines
+        for(String[] line : parsedData){
+            //Check if there is a barcode and discard if not
+            if(line[0].isEmpty()){
+                continue;
+            }
+            //Check if price is set,
+            if(line[1].isEmpty()){
+                line[1] = "-1";
+            }
+            // Check if product exists and add it if it doesn't
+            if(!Queries.productInDatabase(line[0], connection)){
+                Queries.insertProduct(line[0], line[2], line[3], line[4], line[5], connection);
+            }
+            //Check if price is up to date and add a new entry if not
+            if(!Queries.priceIsUpToDate(line[0],line[1],connection)){
+                Queries.insertPrice(line[1], line[0],storeInfo[0], connection);
+            }
+        }
+        if(!file.delete()){
+            System.err.println("Couldn't delete file: " + file.getAbsolutePath());
+        };
+
     }
 
 }

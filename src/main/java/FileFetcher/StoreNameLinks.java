@@ -1,3 +1,5 @@
+package FileFetcher;
+
 import java.io.Serializable;
 import java.util.List;
 import java.time.LocalDate;

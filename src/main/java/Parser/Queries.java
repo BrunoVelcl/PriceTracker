@@ -7,12 +7,12 @@ import java.sql.SQLException;
 public class Queries {
 
     // Update database with new price
-    public static void insertPrice(String price, String product, String store, Connection connection) throws SQLException {
+    public static void insertPrice(String price, String barcode, String store, Connection connection) throws SQLException {
         String query = "INSERT INTO prices (price, product_ID ,store_id) VALUES (?,?,?)";
         PreparedStatement ps = connection.prepareStatement(query);
-        ps.setString(1,price);
-        ps.setString(2,product);
-        ps.setString(3, store);
+        ps.setDouble(1,Double.parseDouble(price));
+        ps.setLong(2,Long.parseLong(barcode));
+        ps.setInt(3, Integer.parseInt(store));
         ps.executeUpdate();
     }
 
@@ -20,7 +20,7 @@ public class Queries {
     public static void insertProduct(String barcode, String name, String brand, String unit_quantity, String unit, Connection connection) throws SQLException{
         String query = "INSERT INTO products (id, name, brand, unit_quantity, unit) VALUES (?,?,?,?,?)";
         PreparedStatement ps = connection.prepareStatement(query);
-        ps.setString(1,barcode);
+        ps.setLong(1,Long.parseLong(barcode));
         ps.setString(2, name);
         ps.setString(3, brand);
         ps.setString(4, unit_quantity);
@@ -34,7 +34,7 @@ public class Queries {
         String query = "INSERT INTO stores (address, chain_id) VALUES (?,?)";
         PreparedStatement ps = connection.prepareStatement(query);
         ps.setString(1,address);
-        ps.setString(2, chain);
+        ps.setInt(2, Integer.parseInt(chain));
         ps.executeUpdate();
     }
 
@@ -42,7 +42,7 @@ public class Queries {
     public static String[] findProductByBarcode(String barcode, Connection connection)throws SQLException{
         String query = "SELECT * FROM products WHERE id = ?";
         PreparedStatement ps = connection.prepareStatement(query);
-        ps.setString(1,barcode);
+        ps.setLong(1,Long.parseLong(barcode));
         ResultSet rs = ps.executeQuery();
         if(rs.next()) {
             return new String[]{rs.getString("name"),
@@ -59,7 +59,7 @@ public class Queries {
     public static boolean productInDatabase(String barcode, Connection connection)throws SQLException{
         String query = "SELECT * FROM products WHERE id = ?";
         PreparedStatement ps = connection.prepareStatement(query);
-        ps.setString(1,barcode);
+        ps.setLong(1,Long.parseLong(barcode));
         ResultSet rs = ps.executeQuery();
         return rs.next();
     }
@@ -71,7 +71,7 @@ public class Queries {
         ps.setString(1,address);
         ResultSet rs = ps.executeQuery();
         if(rs.next()){
-            return new String[]{rs.getString("id"), rs.getString("chain.id")};
+            return new String[]{rs.getString("id"), rs.getString("chain_id")};
         }else {
             return new String[0];
         }
@@ -85,5 +85,17 @@ public class Queries {
         ResultSet rs = ps.executeQuery();
         return rs.next();
     }
+
+    // Returns true if price is up to date and false if it changed
+    public static boolean priceIsUpToDate(String barcode, String price, Connection connection) throws SQLException{
+        String query = "SELECT price FROM prices WHERE product_id = ? ORDER BY updated DESC LIMIT  1";
+        PreparedStatement ps = connection.prepareStatement(query);
+        ps.setLong(1, Long.parseLong(barcode));
+        ResultSet rs = ps.executeQuery();
+        if(rs.next()){
+            return rs.getString("price").equals(price);
+        }
+        return false;
+    };
 
 }
