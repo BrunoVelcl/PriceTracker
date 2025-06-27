@@ -1,12 +1,21 @@
 import Parser.ParserLidl;
 
+import java.sql.SQLException;
+import java.util.List;
+
 public class Main {
     public static void main(String[] args) {
 
-        //Downloader downloader = new Downloader();
-        //downloader.download();
+        Downloader downloader = new Downloader();
+        downloader.download();
+        List<StoreNameLinks> list = downloader.getExistingLinks();
         ParserLidl lidl = new ParserLidl();
-        lidl.parse();
+        try {
+            lidl.run(list);
+        }catch (SQLException e){
+            System.err.println("SQL FAILURE IN CODE");
+        }
+        }
     }
 }
 

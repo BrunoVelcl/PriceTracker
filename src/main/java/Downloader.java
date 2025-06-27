@@ -8,10 +8,15 @@ import java.net.http.HttpResponse;
 
 
 public class Downloader {
+    private List<StoreNameLinks> existingLinks;
+
+    public List<StoreNameLinks> getExistingLinks() {
+        return existingLinks;
+    }
 
     @SuppressWarnings("unchecked")
     public void download(String destinationDir){
-        List<StoreNameLinks> existingLinks;
+
         File linksBin = new File("links.bin");
         if(!linksBin.exists()){
             try {
@@ -41,6 +46,7 @@ public class Downloader {
         }
 
         System.out.println("\u001b[32mUPDATE COMPLETE\u001b[37m");
+        return existingLinks;
     }
 
     //TODO: DELETE, this bullshit shouldn't exist
