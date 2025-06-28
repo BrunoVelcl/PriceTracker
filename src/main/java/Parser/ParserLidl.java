@@ -15,6 +15,7 @@ import java.util.List;
 import FileFetcher.StoreNameLinks;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 
 public class ParserLidl extends Parser{
@@ -32,11 +33,9 @@ public class ParserLidl extends Parser{
     }
     public void run() throws SQLException {
 
-
-
         //Find all files in dir
         for(File file : this.fileList){
-
+            storeID = null;
             // Address extraction
             storeAddress = parseAddress(file ,new StringBuilder());
             if(storeAddress == null){
@@ -66,6 +65,11 @@ public class ParserLidl extends Parser{
             });
         }
         executor.shutdown();
+        try{
+            executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+        } catch (InterruptedException e) {
+            System.err.println("Multithreading failed.");
+        }
 
 
     }
@@ -105,8 +109,14 @@ public class ParserLidl extends Parser{
                     case 2 -> unit_quantity = data.substring(start, i);
                     case 3 -> unit  = data.substring(start, i);
                     case 4 -> brand = croMap.replaceString(sb.append(data, start, i));
-                    case 5 -> price = Double.parseDouble(data.substring(start, i ));
-                    case 9 -> barcode = Long.parseLong(data.substring(start, i));
+                    case 5 -> {
+                        String test = data.substring(start, i );
+                        price = (test.isEmpty()) ? null : Double.parseDouble(test);
+                    }
+                    case 9 -> {
+                        String test = data.substring(start, i );
+                        barcode = (test.isEmpty()) ? null : Long.parseLong(test);
+                    }
                 }
                 c++;
                 start = i+1;
@@ -132,21 +142,20 @@ public class ParserLidl extends Parser{
         int addressStart = 17;
         sb.delete(0, addressStart - 1);
         int lineCnt = 0;
-        for (int i = 0; i < sb.length(); i++) {
-            if (lineCnt == 4) {
-                sb.delete(i-1, sb.length());
-                return sb.toString();
-            }
-            if (sb.charAt(i) == '_') {
+        for(int i = sb.length()-1; i > 0; i--){
+            if (sb.charAt(i) == '_'){
                 lineCnt++;
                 sb.replace(i, i + 1, " ");
             }
+            if(lineCnt == 2){
+                sb.delete(i,sb.length());
+            }
         }
-        return null;
+        return (sb.isEmpty()) ? null : sb.toString();
     }
 
     private void processLoop(File file, Connection connection)throws SQLException{
-        //Find all files in dir
+        // Read file
         StringBuilder sb = new StringBuilder();
         String data;
         try {

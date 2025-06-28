@@ -9,9 +9,21 @@ public class Queries {
 
     // Update database with new price
     public static void insertPrice(List<ParsedValues> parsedValues, Connection connection) throws SQLException {
-    //TODO: check if price is curent and INSERT if it isnt
-    }
+        String query = "INSERT INTO prices (price, product_id, store_id) SELECT ?,?,? " +
+                "WHERE (SELECT price FROM prices WHERE product_id = ? AND store_id = ? ORDER BY updated DESC LIMIT 1) IS DISTINCT FROM ?";
+        PreparedStatement ps = connection.prepareStatement(query);
+        for(ParsedValues pv : parsedValues){
+            ps.setDouble(1, pv.getPrice());
+            ps.setLong(2, pv.getBarcode());
+            ps.setInt(3, pv.getStoreID());
+            ps.setInt(4, pv.getStoreID());
+            ps.setLong(5, pv.getBarcode());
+            ps.setDouble(6, pv.getPrice());
+            ps.addBatch();
+        }
 
+        ps.executeBatch();
+    }
     // Insert new product into database
     public static void insertProduct(String barcode, String name, String brand, String unit_quantity, String unit, Connection connection) throws SQLException{
         String query = "INSERT INTO products (id, name, brand, unit_quantity, unit) VALUES (?,?,?,?,?)";
@@ -79,7 +91,8 @@ public class Queries {
         PreparedStatement ps = connection.prepareStatement(query);
         ps.setString(1,address);
         ResultSet rs = ps.executeQuery();
-        return rs.next();
+        return rs.next() && address.equals(rs.getString("address"));
+
     }
 
     // Returns true if price is up to date and false if it changed
@@ -94,8 +107,20 @@ public class Queries {
         return false;
     };
 
-    public static void insertNewProducts(List<ParsedValues> pv, Connection connection) throws SQLException{
-        //TODO: batch transaction, check if product exists and if not INSERT it
+    public static void insertNewProducts(List<ParsedValues> parsedValues, Connection connection) throws SQLException{
+        String query = "INSERT INTO products (id, name, brand, unit_quantity, unit) VALUES (?,?,?,?,?)" +
+                "ON CONFLICT (id) DO NOTHING";
+        PreparedStatement ps = connection.prepareStatement(query);
+        for(ParsedValues pv : parsedValues){
+            ps.setLong(1, pv.getBarcode());
+            ps.setString(2, pv.getProductName());
+            ps.setString(3, pv.getBrand());
+            ps.setString(4, pv.getUnit_quantity());
+            ps.setString(5, pv.getUnit());
+            ps.addBatch();
+        }
+        ps.executeBatch();
+
     }
 
 }

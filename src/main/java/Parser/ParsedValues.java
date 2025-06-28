@@ -58,7 +58,7 @@ public class ParsedValues {
     }
 
     public boolean isValidInput(){
-        return (barcode != null) & (price != -1) & (storeID != null);
+        return (barcode != null) & (price != null) & (storeID != null);
     }
 }
 
