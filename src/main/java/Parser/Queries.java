@@ -15,8 +15,8 @@ public class Queries {
         for(ParsedValues pv : parsedValues){
             ps.setDouble(1, pv.getPrice());
             ps.setLong(2, pv.getBarcode());
-            ps.setInt(3, pv.getStoreID());
-            ps.setInt(4, pv.getStoreID());
+            ps.setInt(3, 1);
+            ps.setInt(4, 1);
             ps.setLong(5, pv.getBarcode());
             ps.setDouble(6, pv.getPrice());
             ps.addBatch();

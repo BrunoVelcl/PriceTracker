@@ -12,6 +12,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+
+import FileFetcher.Store;
 import FileFetcher.StoreNameLinks;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -31,7 +33,7 @@ public class ParserLidl extends Parser{
     public ParserLidl(){
         this( new File("G:\\Dev\\Prices\\dumpster\\LIDL"));
     }
-    public void run() throws SQLException {
+    public void run(BarcodeMap engine) throws SQLException {
 
         //Find all files in dir
         for(File file : this.fileList){
@@ -42,34 +44,35 @@ public class ParserLidl extends Parser{
                 System.err.println("Couldn't parse address for file: " + file.getAbsolutePath());
                 return;
             }
+            testLoop(file, engine);
+            //executor.submit(() -> {
+            //    try {
+            //        Connection connection = DriverManager.getConnection(this.server, this.userName, this.password);
+            //        System.out.println("Database connection established...");
+            //        //Check if store exists in database and add if it doesn't
+            //        if(!Queries.storeInDatabase(storeAddress, connection)){
+            //            Queries.insertStore(storeAddress, "1", connection);
+            //        }
+            //        if(storeID == null) {
+            //            try {
+            //                storeID = Integer.parseInt(Queries.findStoreByAddress(storeAddress, connection)[0]);
+            //            } catch (NumberFormatException e) {
+            //                System.err.println("Couldn't parse store ID for file: " + file.getAbsolutePath());
+            //            }
+            //        }
+            //        processLoop(file, connection);
+            //    } catch (SQLException e) {
+            //        throw new RuntimeException(e);
+            //    }
+            //});
 
-            executor.submit(() -> {
-                try {
-                    Connection connection = DriverManager.getConnection(this.server, this.userName, this.password);
-                    System.out.println("Database connection established...");
-                    //Check if store exists in database and add if it doesn't
-                    if(!Queries.storeInDatabase(storeAddress, connection)){
-                        Queries.insertStore(storeAddress, "1", connection);
-                    }
-                    if(storeID == null) {
-                        try {
-                            storeID = Integer.parseInt(Queries.findStoreByAddress(storeAddress, connection)[0]);
-                        } catch (NumberFormatException e) {
-                            System.err.println("Couldn't parse store ID for file: " + file.getAbsolutePath());
-                        }
-                    }
-                    processLoop(file, connection);
-                } catch (SQLException e) {
-                    throw new RuntimeException(e);
-                }
-            });
         }
-        executor.shutdown();
-        try{
-            executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
-        } catch (InterruptedException e) {
-            System.err.println("Multithreading failed.");
-        }
+        //executor.shutdown();
+        //try{
+        //    executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+        //} catch (InterruptedException e) {
+        //    System.err.println("Multithreading failed.");
+        //}
 
 
     }
@@ -125,7 +128,7 @@ public class ParserLidl extends Parser{
                 c = 0;
                 start = i+1;
 
-                ParsedValues pv = new ParsedValues(barcode, price, productName,brand,unit_quantity, unit, storeAddress, storeID, chain_id);
+                ParsedValues pv = new ParsedValues(barcode, price, productName,brand,unit_quantity, unit, storeAddress, Store.LIDL);
                 if(!pv.isValidInput()){
                     continue;
                 }
@@ -174,6 +177,26 @@ public class ParserLidl extends Parser{
 
         Queries.insertPrice(parsedData, connection);
 
+        if(!file.delete()){
+            System.err.println("Couldn't delete file: " + file.getAbsolutePath());
+        };
+    }
+
+    private void testLoop(File file, BarcodeMap engine){
+        StringBuilder sb = new StringBuilder();
+        String data;
+        try {
+            data = Files.readString(file.toPath(), StandardCharsets.ISO_8859_1);
+        }catch (IOException e){
+            System.err.println("Couldn't find file to parse: " + file.getAbsolutePath());
+            return;
+        }
+
+        List<ParsedValues> parsedData = parse(data, sb);
+
+        for (ParsedValues pv: parsedData){
+            engine.update(pv);
+        }
         if(!file.delete()){
             System.err.println("Couldn't delete file: " + file.getAbsolutePath());
         };
