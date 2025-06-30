@@ -15,14 +15,14 @@ public class ParsedValues {
 
 
 
-    public ParsedValues(Long barcode, Double price, String productName, String brand, String unit_quantity, String unit, String storeAddress, Store chain) {
+    public ParsedValues(Long barcode, Double price, String productName, String brand, String unit_quantity, String unit, StoreInfo storeInfo) {
         this.barcode = barcode;
         this.price = price;
         this.productName = productName;
         this.brand = brand;
         this.unit_quantity = unit_quantity;
         this.unit = unit;
-        this.storeInfo = new StoreInfo(storeAddress, chain);
+        this.storeInfo = storeInfo;
 
     }
 

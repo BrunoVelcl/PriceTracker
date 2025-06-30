@@ -113,23 +113,27 @@ public class PricePoint {
 
     // Update logic
     public void updatePrice(PricePoint firstNode, ParsedValues pv) {
-        PricePoint priceEqual = getPricePointByPrice(firstNode, pv.getPrice());
-        if (priceEqual != null) {
-            if (!priceEqual.inStore(pv.getStoreInfo())) { //Yes price is already up to date, no add store to price node
-                priceEqual.addStore(pv.getStoreInfo());
-            } else { //TODO: fix this repeating logic ^
+        PricePoint pricePointExists = getPricePointByPrice(firstNode, pv.getPrice());
+        if (pricePointExists != null) {
+            if (!pricePointExists.inStore(pv.getStoreInfo())) { //Yes price is already up to date, no add store to price node
                 PricePoint currentPrice = getPricePointByStoreAddress(firstNode, pv.getStoreInfo());
-                if (currentPrice != null) { // Price needs to be updated
+                if (currentPrice != null){ // Found current price, now we remove it
                     currentPrice.removeStore(pv.getStoreInfo());
-                    priceEqual.addStore(pv.getStoreInfo());
-                } else {// New price point needs to be created and store inserted
-                    PricePoint node = firstNode;
-                    while (node.getNextNode() != null) { //Forward to last active node
-                        node = node.getNextNode();
-                    }
-                    node.addPricePoint(pv.getPrice());
                 }
+                pricePointExists.addStore(pv.getStoreInfo()); //Add the new price now
             }
+        } else {
+            PricePoint currentPrice = getPricePointByStoreAddress(firstNode, pv.getStoreInfo());
+            if (currentPrice != null) { // Price needs to be updated
+                currentPrice.removeStore(pv.getStoreInfo());
+            }
+            PricePoint node = firstNode;
+            while (node.getNextNode() != null) { //Forward to last active node
+                node = node.getNextNode();
+            }
+            node.addPricePoint(pv.getPrice());
+            node = node.getNextNode();
+            node.addStore(pv.getStoreInfo());
         }
     }
 }

@@ -21,10 +21,10 @@ import java.util.concurrent.TimeUnit;
 
 
 public class ParserLidl extends Parser{
-    private final Integer chain_id = 1;
+    private final Store chain = Store.LIDL;
     ExecutorService executor =  Executors.newFixedThreadPool(14);
-    String storeAddress;
-    Integer storeID;
+    StoreInfo storeInfo;
+    //Integer storeID;
 
     public ParserLidl(File storeDir){
         this.fileList = storeDir.listFiles();
@@ -37,14 +37,15 @@ public class ParserLidl extends Parser{
 
         //Find all files in dir
         for(File file : this.fileList){
-            storeID = null;
+            //storeID = null;
             // Address extraction
-            storeAddress = parseAddress(file ,new StringBuilder());
+            String storeAddress = parseAddress(file ,new StringBuilder());
             if(storeAddress == null){
                 System.err.println("Couldn't parse address for file: " + file.getAbsolutePath());
                 return;
             }
-            testLoop(file, engine);
+            storeInfo = new StoreInfo(storeAddress, chain);
+            updateLoop(file, engine);
             //executor.submit(() -> {
             //    try {
             //        Connection connection = DriverManager.getConnection(this.server, this.userName, this.password);
@@ -87,12 +88,8 @@ public class ParserLidl extends Parser{
         int c = 0;
         ParsedValues temp;
         List<ParsedValues> parsedValues = new ArrayList<>();
-        Long barcode = null;
-        Double price = null;
-        String productName = null;
-        String brand = null;
-        String unit_quantity = null;
-        String unit = null;
+        ParsedValuesTempContainer tempPvContainer = new ParsedValuesTempContainer();
+        tempPvContainer.storeInfo = storeInfo;
 
         for(int i = start; i < data.length(); i ++){
 
@@ -108,27 +105,28 @@ public class ParserLidl extends Parser{
 
                 sb.setLength(0);
                 switch (c) {
-                    case 0 -> productName = croMap.replaceString(sb.append(data, start, i));
-                    case 2 -> unit_quantity = data.substring(start, i);
-                    case 3 -> unit  = data.substring(start, i);
-                    case 4 -> brand = croMap.replaceString(sb.append(data, start, i));
+                    case 0 -> tempPvContainer.productName = croMap.replaceString(sb.append(data, start, i));
+                    case 2 -> tempPvContainer.unit_quantity = data.substring(start, i);
+                    case 3 -> tempPvContainer.unit  = data.substring(start, i);
+                    case 4 -> tempPvContainer.brand = croMap.replaceString(sb.append(data, start, i));
                     case 5 -> {
                         String test = data.substring(start, i );
-                        price = (test.isEmpty()) ? null : Double.parseDouble(test);
+                        tempPvContainer.price = (test.isEmpty()) ? null : Double.parseDouble(test);
                     }
                     case 9 -> {
                         String test = data.substring(start, i );
-                        barcode = (test.isEmpty()) ? null : Long.parseLong(test);
+                        tempPvContainer.barcode = (test.isEmpty()) ? null : Long.parseLong(test);
                     }
                 }
                 c++;
                 start = i+1;
             }
-            if(cursor == newLine){
+            if(cursor == newLine | i == data.length()-1){ // Second condition includes EOF line
                 c = 0;
                 start = i+1;
 
-                ParsedValues pv = new ParsedValues(barcode, price, productName,brand,unit_quantity, unit, storeAddress, Store.LIDL);
+                ParsedValues pv = tempPvContainer.createParsedValues();
+                tempPvContainer.resetContainer();
                 if(!pv.isValidInput()){
                     continue;
                 }
@@ -182,7 +180,7 @@ public class ParserLidl extends Parser{
         };
     }
 
-    private void testLoop(File file, BarcodeMap engine){
+    private void updateLoop(File file, BarcodeMap engine){
         StringBuilder sb = new StringBuilder();
         String data;
         try {
@@ -197,6 +195,7 @@ public class ParserLidl extends Parser{
         for (ParsedValues pv: parsedData){
             engine.update(pv);
         }
+
         if(!file.delete()){
             System.err.println("Couldn't delete file: " + file.getAbsolutePath());
         };
