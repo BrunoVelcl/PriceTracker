@@ -1,6 +1,8 @@
-package Parser;
+package Engine;
 
-import FileFetcher.Store;
+import Parser.ParsedValues;
+import Parser.ProductInfo;
+import Parser.StoreInfo;
 
 import java.util.ArrayList;
 import java.util.List;

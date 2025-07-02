@@ -1,4 +1,7 @@
-package Parser;
+package Engine;
+
+import Parser.ParsedValues;
+import Parser.ProductInfo;
 
 import java.util.ArrayList;
 import java.util.HashMap;

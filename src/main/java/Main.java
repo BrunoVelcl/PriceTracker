@@ -1,11 +1,8 @@
-import FileFetcher.Downloader;
-import FileFetcher.StoreNameLinks;
-import Parser.BarcodeMap;
+import Engine.BarcodeMap;
 import Parser.ParserLidl;
-import Parser.PricePoint;
+import Engine.PricePoint;
 import Parser.StoreInfo;
 
-import java.sql.SQLException;
 import java.util.List;
 
 public class Main {

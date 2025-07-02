@@ -1,5 +1,7 @@
 package Parser;
 
+import java.util.Comparator;
+
 public class ProductInfo {
     private final Long barcode;
     private final String productName;
@@ -14,6 +16,10 @@ public class ProductInfo {
         this.unit_quantity = unit_quantity;
         this.unit = unit;
     }
+
+    public static Comparator<ProductInfo> byBarcode = Comparator.comparing(ProductInfo::getBarcode);
+    public static Comparator<ProductInfo> byProductName = Comparator.comparing(ProductInfo::getProductName).thenComparing(ProductInfo::getBarcode);
+    public static Comparator<ProductInfo> byBrand = Comparator.comparing(ProductInfo::getBrand).thenComparing(ProductInfo::getProductName);
 
     public Long getBarcode() {
         return barcode;

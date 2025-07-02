@@ -6,6 +6,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
+
+import Engine.BarcodeMap;
 import FileFetcher.Store;
 
 public class ParserLidl extends Parser{
@@ -20,21 +22,22 @@ public class ParserLidl extends Parser{
         this( new File("G:\\Dev\\Prices\\dumpster\\LIDL"));
     }
 
-    public void run(BarcodeMap mappedProducts) {
-        //Find all files in dir
-        for(File file : this.fileList){
-            // Address extraction
-            String storeAddress = parseAddress(file ,new StringBuilder());
-            if(storeAddress == null){
-                System.err.println("Couldn't parse address for file: " + file.getAbsolutePath());
-                return;
-            }
-            storeInfo = new StoreInfo(storeAddress, chain);
-            updateLoop(file, mappedProducts);
-        }
-    }
+//    public void run(BarcodeMap mappedProducts) {
+//        //Find all files in dir
+//        for(File file : this.fileList){
+//            // Address extraction
+//            String storeAddress = parseAddress(file ,new StringBuilder());
+//            if(storeAddress == null){
+//                System.err.println("Couldn't parse address for file: " + file.getAbsolutePath());
+//                return;
+//            }
+//            storeInfo = new StoreInfo(storeAddress, chain);
+//            updateLoop(file, mappedProducts);
+//        }
+//    }
 
-    public static String parseAddress(File file, StringBuilder sb) {
+    @Override
+    protected String parseAddress(File file, StringBuilder sb) {
         sb.setLength(0);
         sb.append(file.getName());
 
@@ -53,28 +56,29 @@ public class ParserLidl extends Parser{
         return (sb.isEmpty()) ? null : sb.toString();
     }
 
-    private void updateLoop(File file, BarcodeMap engine){
-        StringBuilder sb = new StringBuilder();
-        String data;
-        try {
-            data = Files.readString(file.toPath(), StandardCharsets.ISO_8859_1);
-        }catch (IOException e){
-            System.err.println("Couldn't find file to parse: " + file.getAbsolutePath());
-            return;
-        }
+//    private void updateLoop(File file, BarcodeMap barcodeMap){
+//        StringBuilder sb = new StringBuilder();
+//        String data;
+//        try {
+//            data = Files.readString(file.toPath(), StandardCharsets.ISO_8859_1);
+//        }catch (IOException e){
+//            System.err.println("Couldn't find file to parse: " + file.getAbsolutePath());
+//            return;
+//        }
+//
+//        List<ParsedValues> parsedData = parse(data, sb);
+//
+//        for (ParsedValues pv: parsedData){
+//            barcodeMap.update(pv);
+//        }
+//
+//        if(!file.delete()){
+//            System.err.println("Couldn't delete file: " + file.getAbsolutePath());
+//        }
+//    }
 
-        List<ParsedValues> parsedData = parse(data, sb);
-
-        for (ParsedValues pv: parsedData){
-            engine.update(pv);
-        }
-
-        if(!file.delete()){
-            System.err.println("Couldn't delete file: " + file.getAbsolutePath());
-        }
-    }
-
-    private List<ParsedValues> parse(String data, StringBuilder sb){
+    @Override
+    protected List<ParsedValues> parseData(String data, StringBuilder sb){
         sb.setLength(0);
         CroCharMap croMap = new CroCharMap();
         boolean quotes = false;
