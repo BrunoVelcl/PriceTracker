@@ -16,11 +16,9 @@ public class Main {
 
         BarcodeMap engine = new BarcodeMap();
         ParserLidl lidl = new ParserLidl();
-        try {
-            lidl.run(engine);
-        }catch (SQLException e){
-            System.err.println("SQL FAILURE IN CODE");
-        }
+
+        lidl.run(engine);
+
 
         long x = 3830000625777L;
         List<PricePoint> result = engine.getPricesForBarcode(x);
