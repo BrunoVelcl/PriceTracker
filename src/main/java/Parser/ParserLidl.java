@@ -1,17 +1,11 @@
 package Parser;
 
 import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
-
-import Engine.BarcodeMap;
 import FileFetcher.Store;
 
 public class ParserLidl extends Parser{
-
 
     public ParserLidl(File storeDir){
         super(storeDir.listFiles(), Store.LIDL);
@@ -21,20 +15,6 @@ public class ParserLidl extends Parser{
     public ParserLidl(){
         this( new File("G:\\Dev\\Prices\\dumpster\\LIDL"));
     }
-
-//    public void run(BarcodeMap mappedProducts) {
-//        //Find all files in dir
-//        for(File file : this.fileList){
-//            // Address extraction
-//            String storeAddress = parseAddress(file ,new StringBuilder());
-//            if(storeAddress == null){
-//                System.err.println("Couldn't parse address for file: " + file.getAbsolutePath());
-//                return;
-//            }
-//            storeInfo = new StoreInfo(storeAddress, chain);
-//            updateLoop(file, mappedProducts);
-//        }
-//    }
 
     @Override
     protected String parseAddress(File file, StringBuilder sb) {
@@ -55,27 +35,6 @@ public class ParserLidl extends Parser{
         }
         return (sb.isEmpty()) ? null : sb.toString();
     }
-
-//    private void updateLoop(File file, BarcodeMap barcodeMap){
-//        StringBuilder sb = new StringBuilder();
-//        String data;
-//        try {
-//            data = Files.readString(file.toPath(), StandardCharsets.ISO_8859_1);
-//        }catch (IOException e){
-//            System.err.println("Couldn't find file to parse: " + file.getAbsolutePath());
-//            return;
-//        }
-//
-//        List<ParsedValues> parsedData = parse(data, sb);
-//
-//        for (ParsedValues pv: parsedData){
-//            barcodeMap.update(pv);
-//        }
-//
-//        if(!file.delete()){
-//            System.err.println("Couldn't delete file: " + file.getAbsolutePath());
-//        }
-//    }
 
     @Override
     protected List<ParsedValues> parseData(String data, StringBuilder sb){
