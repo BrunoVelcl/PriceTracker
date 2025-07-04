@@ -1,4 +1,5 @@
 import Engine.BarcodeMap;
+import Engine.Engine;
 import Parser.ParserLidl;
 import Engine.PricePoint;
 import Parser.StoreInfo;
@@ -11,27 +12,9 @@ public class Main {
         //Downloader downloader = new Downloader();
         //downloader.download();
 
-        BarcodeMap engine = new BarcodeMap();
-        ParserLidl lidl = new ParserLidl();
+        Engine engine = new Engine();
+        engine.run();
 
-        lidl.run(engine);
-
-
-        long x = 3830000625777L;
-        List<PricePoint> result = engine.getPricesForBarcode(x);
-
-        for(PricePoint price : result){
-            System.out.println(price.getProductInfo().getProductName());
-            System.out.println(price.getProductInfo().getBrand());
-            System.out.println(price.getPrice());
-            System.out.print("STORES: " );
-            for(StoreInfo store : price.getStores()){
-                System.out.print(store.getAddress() + "  ");
-            }
-            System.out.println();
-            System.out.println("***************************");
-
-        }
 
     }
 }

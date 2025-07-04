@@ -2,7 +2,9 @@ package Parser;
 
 import FileFetcher.Store;
 
-public class StoreInfo {
+import java.io.Serializable;
+
+public class StoreInfo implements Serializable {
     private final String address;
     private final Store chain;
 

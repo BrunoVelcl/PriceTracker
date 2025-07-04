@@ -3,12 +3,11 @@ package Engine;
 import Parser.ParsedValues;
 import Parser.ProductInfo;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.io.*;
+import java.nio.file.Path;
+import java.util.*;
 
-public class BarcodeMap {
+public class BarcodeMap implements Serializable{
     Map<Long, PricePoint> barcodeMap = new HashMap<>();
 
     public void update(ParsedValues pv){
@@ -40,8 +39,10 @@ public class BarcodeMap {
             list.add(Node);
             Node = Node.getNextNode();
         }
+        Collections.sort(list);
         return list;
     }
+
 }
 
 

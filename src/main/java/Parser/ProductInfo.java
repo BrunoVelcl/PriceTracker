@@ -1,8 +1,9 @@
 package Parser;
 
+import java.io.Serializable;
 import java.util.Comparator;
 
-public class ProductInfo {
+public class ProductInfo implements Serializable {
     private final Long barcode;
     private final String productName;
     private final String brand;

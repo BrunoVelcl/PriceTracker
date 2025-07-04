@@ -7,9 +7,8 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.sql.Connection;
 import java.util.List;
-import java.util.Scanner;
+
 
 public abstract class Parser {
 

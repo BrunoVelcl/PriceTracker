@@ -4,10 +4,11 @@ import Parser.ParsedValues;
 import Parser.ProductInfo;
 import Parser.StoreInfo;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PricePoint {
+public class PricePoint implements Comparable<PricePoint>, Serializable {
     private final ProductInfo productInfo;
     private final double price;
     private List<StoreInfo> stores = null;
@@ -137,5 +138,10 @@ public class PricePoint {
             node = node.getNextNode();
             node.addStore(pv.getStoreInfo());
         }
+    }
+
+    @Override
+    public int compareTo(PricePoint o) {
+        return Double.compare(this.price, o.getPrice());
     }
 }
