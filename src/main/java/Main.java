@@ -1,5 +1,6 @@
 import Engine.BarcodeMap;
 import Engine.Engine;
+import Parser.ParsedValues;
 import Parser.ParserLidl;
 import Engine.PricePoint;
 import Parser.StoreInfo;
@@ -13,7 +14,8 @@ public class Main {
         //downloader.download();
 
         Engine engine = new Engine();
-        //engine.firstTime();
+        //List<ParsedValues> changes = engine.updateData();
+        //System.out.println(changes.getFirst().getProductName() + ", " + changes.get(1000).getProductName() );
         engine.run();
 
 
@@ -21,6 +23,6 @@ public class Main {
 }
 
 //TODO: add timed tasks, add timestamp to FileFetcher.StoreNameLinks
-//TODO: add automatic cleanup
+//TODO: add automatic cleanup for file fetcher
 //TODO: check Kaufland links lol
 //TODO: make a separate download check list

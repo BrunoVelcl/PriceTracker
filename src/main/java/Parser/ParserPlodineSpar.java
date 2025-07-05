@@ -5,15 +5,15 @@ import java.util.ArrayList;
 import java.util.List;
 import FileFetcher.Store;
 
-public class ParserPlodine extends Parser{
+public class ParserPlodineSpar extends Parser{
 
-    public ParserPlodine(File storeDir){
-        super(storeDir.listFiles(), Store.PLODINE);
+    public ParserPlodineSpar(File storeDir, Store store){
+        super(storeDir.listFiles(), store);
     }
 
     //TODO: change this!
-    public ParserPlodine(){
-        this( new File("G:\\Dev\\Prices\\dumpster\\PLODINE"));
+    public ParserPlodineSpar(Store store){
+        this( new File("G:\\Dev\\Prices\\dumpster\\" + store.toString()), store);
     }
 
     @Override

@@ -7,13 +7,13 @@ import FileFetcher.Store;
 
 public class ParserKaufland extends Parser{
 
-    public ParserKaufland(File storeDir){
-        super(storeDir.listFiles(), Store.KAUFLAND);
+    public ParserKaufland(File storeDir, Store store){
+        super(storeDir.listFiles(), store);
     }
 
     //TODO: change this!
-    public ParserKaufland(){
-        this( new File("G:\\Dev\\Prices\\dumpster\\KAUFLAND"));
+    public ParserKaufland(Store store){
+        this( new File("G:\\Dev\\Prices\\dumpster\\" + store), store);
     }
 
     @Override

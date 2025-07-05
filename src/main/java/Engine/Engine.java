@@ -57,8 +57,18 @@ public class Engine {
             System.out.println("\u001b[94mBrand: \u001b[92m" + brand);
             System.out.println("\u001b[94mCijena: \u001b[97m" + price);
             List<StoreInfo> stores = pricePoint.getStores();
+            Set<Store> chains = new HashSet<>();
             for(StoreInfo store : stores){
-                System.out.print(store.getChain() + ":" + store.getAddress() + " || ");
+                for(StoreInfo selStore : this.selectedStores){
+                    if(selStore.equals(store)){
+                        System.out.print("\u001b[95m" + store.getChain() + ":" + store.getAddress() + "\u001b[37m || ");
+                    }
+                }
+                //System.out.print(store.getChain() + ":" + store.getAddress() + " || ");
+                chains.add(store.getChain());
+            }
+            for(Store chain : chains){
+                System.out.print(chain.toString() + " . ");
             }
             System.out.println("\n\u001b[37m*****************************************************++++++++++++++++++++");
         }
@@ -120,11 +130,20 @@ public class Engine {
 
     }
 
-    //Only use when setting up for the first time
-    public void firstTime(){
-        ParserPlodine parsPlodine = new ParserPlodine();
-        parsPlodine.run(this.barcodeMap);
+    // Parses and updates the datastructures and returns a list of all changes made
+    public List<ParsedValues> updateData(){
+        List<ParsedValues> databaseUpdateList = new ArrayList<>();
+        ParserKaufland parserKaufland = new ParserKaufland(Store.KAUFLAND);
+        ParserLidl parserLidl = new ParserLidl(Store.LIDL);
+        ParserPlodineSpar parsPlodine = new ParserPlodineSpar(Store.PLODINE);
+        ParserPlodineSpar parsSpar = new ParserPlodineSpar(Store.SPAR);
+        databaseUpdateList.addAll(parserKaufland.run(this.barcodeMap));
+        databaseUpdateList.addAll(parserLidl.run(this.barcodeMap));
+        databaseUpdateList.addAll(parsPlodine.run(this.barcodeMap));
+        databaseUpdateList.addAll(parsSpar.run(this.barcodeMap));
         save();
+
+        return databaseUpdateList;
     }
 
     public void storeSelector(Scanner scanner){

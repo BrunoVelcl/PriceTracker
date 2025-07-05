@@ -12,10 +12,10 @@ public class BarcodeMap implements Serializable{
     private final Map<String, Long> productToBarcode = new HashMap<>();
     private final Set<StoreInfo> storeSet = new HashSet<>();
 
-    public void update(ParsedValues pv){
+    public boolean update(ParsedValues pv){
         if(barcodeMap.containsKey(pv.getBarcode())){
             PricePoint firstNode = barcodeMap.get(pv.getBarcode());
-            firstNode.updatePrice(firstNode, pv);
+            return firstNode.updatePrice(firstNode, pv);
         }else {
             barcodeMap.put(
                     pv.getBarcode(),
@@ -29,6 +29,7 @@ public class BarcodeMap implements Serializable{
             productToBarcode.put(pv.getProductName(), pv.getBarcode());
             PricePoint firstNode = barcodeMap.get(pv.getBarcode());
             firstNode.addStore(pv.getStoreInfo());
+            return true;
         }
     }
 

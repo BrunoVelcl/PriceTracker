@@ -115,7 +115,7 @@ public class PricePoint implements Comparable<PricePoint>, Serializable {
     }
 
     // Update logic
-    public void updatePrice(PricePoint firstNode, ParsedValues pv) {
+    public boolean updatePrice(PricePoint firstNode, ParsedValues pv) {
         PricePoint pricePointExists = getPricePointByPrice(firstNode, pv.getPrice());
         if (pricePointExists != null) {
             if (!pricePointExists.inStore(pv.getStoreInfo())) { //Yes price is already up to date, no add store to price node
@@ -126,7 +126,8 @@ public class PricePoint implements Comparable<PricePoint>, Serializable {
                         currentPrice.removePricePoint(); //Remove node if no stores have this price point
                     }
                 }
-                pricePointExists.addStore(pv.getStoreInfo()); //Add the new price now
+                pricePointExists.addStore(pv.getStoreInfo());//Add the new price now
+                return true;
             }
         } else {
             PricePoint currentPrice = getPricePointByStoreAddress(firstNode, pv.getStoreInfo());
@@ -143,7 +144,9 @@ public class PricePoint implements Comparable<PricePoint>, Serializable {
             node.addPricePoint(pv.getPrice());
             node = node.getNextNode();
             node.addStore(pv.getStoreInfo());
+            return true;
         }
+        return false;
     }
 
     @Override

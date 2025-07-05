@@ -7,13 +7,13 @@ import FileFetcher.Store;
 
 public class ParserLidl extends Parser{
 
-    public ParserLidl(File storeDir){
-        super(storeDir.listFiles(), Store.LIDL);
+    public ParserLidl(File storeDir, Store store){
+        super(storeDir.listFiles(), store);
     }
 
     //TODO: change this!
-    public ParserLidl(){
-        this( new File("G:\\Dev\\Prices\\dumpster\\LIDL"));
+    public ParserLidl(Store store){
+        this( new File("G:\\Dev\\Prices\\dumpster\\LIDL"), store);
     }
 
     @Override
