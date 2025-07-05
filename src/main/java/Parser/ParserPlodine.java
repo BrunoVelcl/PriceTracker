@@ -5,15 +5,15 @@ import java.util.ArrayList;
 import java.util.List;
 import FileFetcher.Store;
 
-public class ParserKaufland extends Parser{
+public class ParserPlodine extends Parser{
 
-    public ParserKaufland(File storeDir){
-        super(storeDir.listFiles(), Store.KAUFLAND);
+    public ParserPlodine(File storeDir){
+        super(storeDir.listFiles(), Store.PLODINE);
     }
 
     //TODO: change this!
-    public ParserKaufland(){
-        this( new File("G:\\Dev\\Prices\\dumpster\\KAUFLAND"));
+    public ParserPlodine(){
+        this( new File("G:\\Dev\\Prices\\dumpster\\PLODINE"));
     }
 
     @Override
@@ -59,7 +59,7 @@ public class ParserKaufland extends Parser{
         CroCharMap croMap = new CroCharMap();
         boolean quotes = false;
         char newLine = 0x0a;
-        char delimiter = 0x09;
+        char delimiter = ';';
         int start = data.indexOf(newLine) + 1;
         int c = 0;
         List<ParsedValues> parsedValues = new ArrayList<>();
@@ -88,9 +88,17 @@ public class ParserKaufland extends Parser{
                         String test = sb.toString();
                         tempPvContainer.price = (test.isEmpty()) ? null : Double.parseDouble(test);
                     }
-                    case 13 -> {
+                    case 10 -> {
                         String test = data.substring(start, i );
-                        tempPvContainer.barcode = (test.isEmpty()) ? null : Long.parseLong(test);
+                        if(test.isEmpty()){
+                            tempPvContainer.barcode =  null;
+                            break;
+                        } try {
+                            tempPvContainer.barcode = Long.parseLong(test);
+                        }catch (NumberFormatException e){ // There are fffffff and 2127172Â entered under barcode LMAO
+                            tempPvContainer.barcode = null;
+                            //System.err.println("Couldn't read barcode: " + e.getMessage());
+                        }
                     }
                 }
                 c++;

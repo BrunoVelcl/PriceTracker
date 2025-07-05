@@ -1,10 +1,7 @@
 package Engine;
 
 import FileFetcher.Store;
-import Parser.ParserKaufland;
-import Parser.ParserLidl;
-import Parser.ProductInfo;
-import Parser.StoreInfo;
+import Parser.*;
 
 import java.io.*;
 import java.util.*;
@@ -125,8 +122,8 @@ public class Engine {
 
     //Only use when setting up for the first time
     public void firstTime(){
-        ParserKaufland parsKauf = new ParserKaufland();
-        parsKauf.run(this.barcodeMap);
+        ParserPlodine parsPlodine = new ParserPlodine();
+        parsPlodine.run(this.barcodeMap);
         save();
     }
 
