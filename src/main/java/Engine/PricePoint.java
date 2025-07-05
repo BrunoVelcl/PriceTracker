@@ -47,7 +47,7 @@ public class PricePoint implements Comparable<PricePoint>, Serializable {
         }
         return false;
     }
-
+    //***Returns a list of stores from the current node*/
     public List<StoreInfo> getStores() {
         return stores;
     }

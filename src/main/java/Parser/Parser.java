@@ -34,6 +34,7 @@ public abstract class Parser {
                 return;
             }
             storeInfo = new StoreInfo(storeAddress, chain);
+            mappedProducts.storeUpdate(storeInfo);
             updateLoop(file, mappedProducts);
         }
     }
