@@ -10,6 +10,7 @@ import java.util.*;
 
 public class BarcodeMap implements Serializable{
     private final Map<Long, PricePoint> barcodeMap = new HashMap<>();
+    private final Map<String, Long> productToBarcode = new HashMap<>();
     private final Set<StoreInfo> storeSet = new HashSet<>();
 
     public void update(ParsedValues pv){
@@ -26,6 +27,7 @@ public class BarcodeMap implements Serializable{
                             pv.getPrice()
                     )
             );
+            productToBarcode.put(pv.getProductName(), pv.getBarcode());
             PricePoint firstNode = barcodeMap.get(pv.getBarcode());
             firstNode.addStore(pv.getStoreInfo());
         }
@@ -43,6 +45,14 @@ public class BarcodeMap implements Serializable{
         }
         Collections.sort(list);
         return list;
+    }
+
+    public List<PricePoint> getPricesForProductName(String pName){
+        return getPricesForBarcode(this.productToBarcode.get(pName));
+    }
+
+    public long getBarcodeForProductName(String pName){
+        return this.productToBarcode.get(pName);
     }
 
     public Set<StoreInfo> getStoreSet() {
@@ -82,6 +92,17 @@ public class BarcodeMap implements Serializable{
 
     public void storeUpdate(StoreInfo storeInfo) {
         this.storeSet.add(storeInfo);
+    }
+
+    public List<String> searchProduct(String searchTerm){
+        List<String> found = new ArrayList<>();
+        Set<String> keySet = this.productToBarcode.keySet();
+        for (String key : keySet){
+            if(key.toLowerCase().contains(searchTerm.toLowerCase())){
+                found.add(key);
+            }
+        }
+        return found;
     }
 }
 

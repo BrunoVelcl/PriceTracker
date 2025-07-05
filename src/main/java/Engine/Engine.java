@@ -73,13 +73,21 @@ public class Engine {
         engine.load();
         engine.loadUserData();
         while (run){
-            System.out.println("Options: 1. Barcode search | 3. Find deals for selected. | 4. All diffs | 5. Store Selector | 6. Clear user data. | 7. View selections | Q. quit");
+            System.out.println("Options: 1. Barcode search | 2. Product Search | 3. Find deals for selected. | 4. All diffs | 5. Store Selector | 6. Clear user data. | 7. View selections | Q. quit");
             option = scanner.nextLine();
             switch (option){
                 case "1" -> {
                     System.out.print("Enter barcode: ");
                     barcode = scanner.nextLong();
                     engine.printPrices(barcode);
+                }
+                case "2" -> {
+                    String product = engine.productSelector(scanner);
+                    if(product.equals("Invalid selection")){
+                        System.out.println(product);
+                    }else {
+                        engine.printPrices(engine.barcodeMap.getBarcodeForProductName(product));
+                    }
                 }
                 case "3" -> {
                     List<Long> keys = engine.barcodeMap.findDealForSelectedStores(engine.selectedStores);
@@ -140,6 +148,30 @@ public class Engine {
         }
     }
 
+    private String productSelector(Scanner scanner){
+        System.out.println("Enter product: ");
+        String input = scanner.nextLine();
+        List<String> foundProducts = this.barcodeMap.searchProduct(input);
+        if(foundProducts.isEmpty()){
+            return "Invalid selection";
+        }
+        for(int i = 0; i < foundProducts.size(); i++){
+            System.out.println(i + ". " + foundProducts.get(i));
+        }
+        System.out.println("Select product: ");
+        input = scanner.nextLine();
+        int index;
+        try{
+            index = Integer.parseInt(input);
+            if(index < 0 | index > foundProducts.size()){
+                return "Invalid selection";
+            }
+            return foundProducts.get(index);
+        }catch (NumberFormatException e){
+            return "Invalid selection";
+        }
+    }
+
     private void saveUserData(){
         try {
             ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(this.userData));
@@ -171,6 +203,8 @@ public class Engine {
         }
         System.out.println();
     }
+
+
 
 }
 
