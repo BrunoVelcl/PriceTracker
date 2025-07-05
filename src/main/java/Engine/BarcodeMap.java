@@ -5,7 +5,6 @@ import Parser.ProductInfo;
 import Parser.StoreInfo;
 
 import java.io.*;
-import java.nio.file.Path;
 import java.util.*;
 
 public class BarcodeMap implements Serializable{
@@ -72,19 +71,29 @@ public class BarcodeMap implements Serializable{
 
     public List<Long> findDealForSelectedStores(List<StoreInfo> storesToCheck){
         List<Long> foundKeys = new ArrayList<>();
-        keyIterator:
+        keyIteration:
             for(Long key : barcodeMap.keySet()) {
+                List<PricePoint> temp = new ArrayList<>();
                 PricePoint node = barcodeMap.get(key);
-                while (node.getNextNode() != null) { // This condition will not check the last node
-                    for (StoreInfo store : node.getStores()) {
-                        for (StoreInfo oStore : storesToCheck) {
-                            if (store.equals(oStore)) {
-                                foundKeys.add(key);
-                                continue keyIterator;
+                while (node != null) {
+                    temp.add(node);
+                    node = node.getNextNode();
+                }
+                if(temp.size() > 1) {
+                    temp.sort(null);
+                    for (int i = 0; i < temp.size(); i++) {
+                        for (StoreInfo si : temp.get(i).getStores()) {
+                            for (StoreInfo oStores : storesToCheck) {
+                                if (oStores.compare(si, oStores) == 0) {
+                                    if(i < temp.size()-1) {
+                                        foundKeys.add(key);
+                                        continue keyIteration;
+                                    }
+
+                                }
                             }
                         }
                     }
-                node = node.getNextNode();
                 }
             }
         return foundKeys;

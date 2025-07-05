@@ -55,9 +55,9 @@ public abstract class Parser {
             barcodeMap.update(pv);
         }
 
-        if(!file.delete()){
-            System.err.println("Couldn't delete file: " + file.getAbsolutePath());
-        }
+        //if(!file.delete()){
+        //    System.err.println("Couldn't delete file: " + file.getAbsolutePath());
+        //}
     }
 }
 

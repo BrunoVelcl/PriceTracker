@@ -122,6 +122,9 @@ public class PricePoint implements Comparable<PricePoint>, Serializable {
                 PricePoint currentPrice = getPricePointByStoreAddress(firstNode, pv.getStoreInfo());
                 if (currentPrice != null){ // Found current price, now we remove it
                     currentPrice.removeStore(pv.getStoreInfo());
+                    if(currentPrice.getStores().isEmpty()){
+                        currentPrice.removePricePoint(); //Remove node if no stores have this price point
+                    }
                 }
                 pricePointExists.addStore(pv.getStoreInfo()); //Add the new price now
             }
@@ -129,6 +132,9 @@ public class PricePoint implements Comparable<PricePoint>, Serializable {
             PricePoint currentPrice = getPricePointByStoreAddress(firstNode, pv.getStoreInfo());
             if (currentPrice != null) { // Price needs to be updated
                 currentPrice.removeStore(pv.getStoreInfo());
+                if(currentPrice.getStores().isEmpty()){
+                    currentPrice.removePricePoint(); //Remove node if no stores have this price point
+                }
             }
             PricePoint node = firstNode;
             while (node.getNextNode() != null) { //Forward to last active node

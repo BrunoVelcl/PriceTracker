@@ -1,6 +1,7 @@
 package Engine;
 
 import FileFetcher.Store;
+import Parser.ParserKaufland;
 import Parser.ParserLidl;
 import Parser.ProductInfo;
 import Parser.StoreInfo;
@@ -53,7 +54,9 @@ public class Engine {
             double price = pricePoint.getPrice();
             String product = pricePoint.getProductInfo().getProductName();
             String brand = pricePoint.getProductInfo().getBrand();
+            String unit_quantity = pricePoint.getProductInfo().getUnit_quantity();
             System.out.println("\u001b[94mProizvod: \u001b[92m" + product);
+            System.out.println("\u001b[94mPakiranje: \u001b[92m" + unit_quantity);
             System.out.println("\u001b[94mBrand: \u001b[92m" + brand);
             System.out.println("\u001b[94mCijena: \u001b[97m" + price);
             List<StoreInfo> stores = pricePoint.getStores();
@@ -122,8 +125,8 @@ public class Engine {
 
     //Only use when setting up for the first time
     public void firstTime(){
-        ParserLidl parsLidl = new ParserLidl();
-        parsLidl.run(this.barcodeMap);
+        ParserKaufland parsKauf = new ParserKaufland();
+        parsKauf.run(this.barcodeMap);
         save();
     }
 
