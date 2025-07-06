@@ -6,10 +6,11 @@ import Parser.StoreInfo;
 
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class BarcodeMap implements Serializable{
-    private final Map<Long, PricePoint> barcodeMap = new HashMap<>();
-    private final Map<String, Long> productToBarcode = new HashMap<>();
+    private final Map<Long, PricePoint> barcodeMap = new ConcurrentHashMap<>();
+    private final Map<String, Long> productToBarcode = new ConcurrentHashMap<>();
     private final Set<StoreInfo> storeSet = new HashSet<>();
 
     public boolean update(ParsedValues pv){

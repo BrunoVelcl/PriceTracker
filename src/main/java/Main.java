@@ -14,9 +14,9 @@ public class Main {
         //downloader.download();
 
         Engine engine = new Engine();
-        //List<ParsedValues> changes = engine.updateData();
-        //System.out.println(changes.getFirst().getProductName() + ", " + changes.get(1000).getProductName() );
-        engine.run();
+        List<ParsedValues> changes = engine.updateData();
+        System.out.println(changes.getFirst().getProductName() + ", " + changes.get(1000).getProductName() );
+        //engine.run();
 
 
     }

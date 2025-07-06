@@ -5,6 +5,8 @@ import Parser.*;
 
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class Engine {
     private BarcodeMap barcodeMap = new BarcodeMap();
@@ -137,10 +139,24 @@ public class Engine {
         ParserLidl parserLidl = new ParserLidl(Store.LIDL);
         ParserPlodineSpar parsPlodine = new ParserPlodineSpar(Store.PLODINE);
         ParserPlodineSpar parsSpar = new ParserPlodineSpar(Store.SPAR);
-        databaseUpdateList.addAll(parserKaufland.run(this.barcodeMap));
-        databaseUpdateList.addAll(parserLidl.run(this.barcodeMap));
-        databaseUpdateList.addAll(parsPlodine.run(this.barcodeMap));
-        databaseUpdateList.addAll(parsSpar.run(this.barcodeMap));
+
+
+        try(ExecutorService executor = Executors.newFixedThreadPool(4)){
+            executor.submit(() ->{
+                databaseUpdateList.addAll(parserKaufland.run(this.barcodeMap));
+            });
+            executor.submit(() ->{
+                databaseUpdateList.addAll(parserLidl.run(this.barcodeMap));
+            });
+            executor.submit(() -> {
+                databaseUpdateList.addAll(parsPlodine.run(this.barcodeMap));
+            });
+            executor.submit(() -> {
+                databaseUpdateList.addAll(parsSpar.run(this.barcodeMap));
+            });
+
+        }
+
         save();
 
         return databaseUpdateList;
