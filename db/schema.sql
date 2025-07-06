@@ -13,7 +13,7 @@ CREATE TABLE stores(
 
 CREATE TABLE products(
     id BIGINT UNIQUE PRIMARY KEY, -- id by barcode
-    name VARCHAR(100) NOT NULL,
+    name VARCHAR(200) NOT NULL,
     brand VARCHAR(50),
     unit_quantity VARCHAR (50),
     unit VARCHAR (50)

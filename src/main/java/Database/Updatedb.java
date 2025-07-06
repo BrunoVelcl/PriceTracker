@@ -63,18 +63,41 @@ public class Updatedb {
             return;
         }
 
-        for(ParsedValues pv : pvList){
-
-            if(!Queries.storeInDatabase(pv.getStoreInfo().getAddress(), con)){
-                Queries.insertStore(pv.getStoreInfo(), con);
+        // Race condition loop
+        for(int i = 0; i < pvList.size(); i++){
+            if(!Queries.storeInDatabase(pvList.get(i).getStoreInfo().getAddress(), con)){
+                Queries.insertStore(pvList.get(i).getStoreInfo(), con);
             }
-
-            if(!Queries.productInDatabase(pv, con)){
-                Queries.insertProduct(pv, con);
+            if(!Queries.productInDatabase(pvList.get(i), con)){
+                try {
+                    Queries.insertProduct(pvList.get(i), con);
+                }catch (SQLException e){
+                    System.err.println("Found race condition: " + e.getMessage() + " || " +e.getSQLState());
+                    System.out.println(pvList.get(i).getProductName());
+                    System.out.println(pvList.get(i).getStoreInfo().getAddress());
+                    System.out.println(pvList.get(i).getStoreInfo().getChain());
+                    System.out.println("Retrying...");
+                    i--;
+                }
             }
-
-            Queries.insertPrice(pv,con);
+            Queries.insertPrice(pvList.get(i),con);
         }
+
+//        for(ParsedValues pv : pvList){
+//            if(!Queries.storeInDatabase(pv.getStoreInfo().getAddress(), con)){
+//                Queries.insertStore(pv.getStoreInfo(), con);
+//            }
+//
+//            if(!Queries.productInDatabase(pv, con)){
+//                try {
+//                    Queries.insertProduct(pv, con);
+//                }catch (SQLException e){
+//                    System.err.println("Found race condition: " + e.getMessage() + " || " +e.getSQLState());
+//                }
+//            }
+//
+//            Queries.insertPrice(pv,con);
+//        }
     }
 
     // Only called when initializing the database
@@ -94,4 +117,5 @@ public class Updatedb {
         Queries.insertNewChain(Store.SPAR,"https://www.spar.hr/", con );
         Queries.insertNewChain(Store.STUDENAC,"https://www.studenac.hr/", con );
     }
+
 }

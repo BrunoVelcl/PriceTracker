@@ -142,10 +142,10 @@ public class Engine {
         ParserPlodineSpar parsSpar = new ParserPlodineSpar(Store.SPAR);
 
         System.out.println("\u001b[93mBegin hashing....\u001b[37m");
-        parserKaufland.run(this.barcodeMap); //Delete this after initial setup and enable the threaded one
-        parserLidl.run(this.barcodeMap);
-        parsPlodine.run(this.barcodeMap);
-        parsSpar.run(this.barcodeMap);
+        databaseUpdateList.addAll(parserKaufland.run(this.barcodeMap));//Delete this after initial setup and enable the threaded one
+        databaseUpdateList.addAll(parserLidl.run(this.barcodeMap));
+        databaseUpdateList.addAll(parsPlodine.run(this.barcodeMap));
+        databaseUpdateList.addAll(parsSpar.run(this.barcodeMap));
         System.out.println("\u001b[93mFinish hashing....\u001b[37m");
 //        ExecutorService executor = Executors.newFixedThreadPool(4);
 //
@@ -169,9 +169,9 @@ public class Engine {
 //            System.err.println("Multithreading error in engine: " + e.getMessage());
 //        }
 
-
+        System.out.println("len = " + databaseUpdateList.size());
         save();
-
+        System.out.println("len = " + databaseUpdateList.size());
         return databaseUpdateList;
     }
 

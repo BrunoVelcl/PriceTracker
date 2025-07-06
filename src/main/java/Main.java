@@ -30,15 +30,18 @@ public class Main {
 //        }
 
         Engine engine = new Engine();
-        List<ParsedValues> changes = engine.updateData();
-        Updatedb db = new Updatedb();
-        System.out.println("\u001b[93mWRITING TO DATABASE");
-        try {
-            db.updateDb(changes);
-        }catch (SQLException e){
-            System.err.println("SQL EX: " + e.getMessage() + " || " + e.getSQLState());
-        }
-        System.out.println("\u001b[92mGREAT SUCCSESS!");
+//        List<ParsedValues> changes = engine.updateData();
+//        Updatedb db = new Updatedb();
+//        System.out.println("\u001b[93mWRITING TO DATABASE");
+//        try {
+//            db.firstTimeChainEntry();
+//            db.updateDb(changes);
+//        }catch (SQLException e){
+//            System.err.println("SQL EX: " + e.getMessage() + " || " + e.getSQLState());
+//        }
+//        System.out.println("\u001b[92mGREAT SUCCSESS!");
+        engine.load();
+        engine.run();
 
     }
 }

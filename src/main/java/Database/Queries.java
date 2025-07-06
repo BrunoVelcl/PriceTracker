@@ -27,7 +27,7 @@ public class Queries {
     }
     // Insert new product into database
     public static void insertProduct(ParsedValues pv, Connection connection) throws SQLException{
-        String query = "INSERT INTO products (id, name, brand, unit_quantity, unit) VALUES (?,?,?,?,?)";
+        String query = "INSERT INTO products (id, name, brand, unit_quantity, unit) VALUES (?,?,?,?,?) ON CONFLICT (id) DO NOTHING";
         PreparedStatement ps = connection.prepareStatement(query);
         ps.setLong(1, pv.getBarcode());
         ps.setString(2, pv.getProductName());

@@ -41,6 +41,7 @@ public class ParserLidl extends Parser{
         sb.setLength(0);
         CroCharMap croMap = new CroCharMap();
         boolean quotes = false;
+        int returnPointForCursor = 0;   //used for keeping track of where cursor encountered -> "
         char newLine = 0x0a;
         char delimiter = 0x2c;
         int start = data.indexOf(0x0a) + 1;
@@ -53,9 +54,14 @@ public class ParserLidl extends Parser{
 
             char cursor = data.charAt(i);
             if(cursor == '"'){
+                returnPointForCursor = i;
                 quotes = !quotes;
             }
             if(quotes){
+                if(cursor == newLine){
+                    quotes = false;
+                    i = returnPointForCursor;
+                }
                 continue;
             }
 
