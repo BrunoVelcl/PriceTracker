@@ -12,7 +12,7 @@ import java.net.http.HttpResponse;
 public class Downloader {
 
     @SuppressWarnings("unchecked")
-    public void download(String destinationDir){
+    public boolean download(String destinationDir){
 
         List<StoreNameLinks> existingLinks;
 
@@ -24,7 +24,7 @@ public class Downloader {
                 }
             }catch (IOException e){
                 System.out.println("File system problem, couldn't create files.");
-                return;
+                return false;
             }
         }
 
@@ -36,6 +36,12 @@ public class Downloader {
         }
             //Get store links
             List<StoreNameLinks>toDownload = LinkFetcher.getAllStores(existingLinks);
+
+            if(toDownload.isEmpty()){
+                System.out.println("\u001b[32mDATA IS ALREADY UP TO DATE.\u001b[37m");
+                return false;
+            }
+
             downloadFromLinks(toDownload,existingLinks, destinationDir);
 
         try(ObjectOutputStream outputStream = new ObjectOutputStream(new FileOutputStream(linksBin))){
@@ -45,12 +51,12 @@ public class Downloader {
         }
 
         System.out.println("\u001b[32mUPDATE COMPLETE\u001b[37m");
-
+        return true;
     }
 
     //TODO: DELETE, this bullshit shouldn't exist
-    public void download(){
-        download("G:\\Dev\\Prices\\dumpster\\");
+    public boolean download(){
+        return download("G:\\Dev\\Prices\\dumpster\\");
     }
 
     private void downloadFromLinks(List<StoreNameLinks> store, List<StoreNameLinks>existingLinks, String destinationDir) {

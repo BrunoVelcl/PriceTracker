@@ -7,6 +7,7 @@ import java.io.*;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 public class Engine {
     private BarcodeMap barcodeMap = new BarcodeMap();
@@ -134,28 +135,40 @@ public class Engine {
 
     // Parses and updates the datastructures and returns a list of all changes made
     public List<ParsedValues> updateData(){
-        List<ParsedValues> databaseUpdateList = new ArrayList<>();
+        List<ParsedValues> databaseUpdateList = Collections.synchronizedList(new ArrayList<>());
         ParserKaufland parserKaufland = new ParserKaufland(Store.KAUFLAND);
         ParserLidl parserLidl = new ParserLidl(Store.LIDL);
         ParserPlodineSpar parsPlodine = new ParserPlodineSpar(Store.PLODINE);
         ParserPlodineSpar parsSpar = new ParserPlodineSpar(Store.SPAR);
 
+        System.out.println("\u001b[93mBegin hashing....\u001b[37m");
+        parserKaufland.run(this.barcodeMap); //Delete this after initial setup and enable the threaded one
+        parserLidl.run(this.barcodeMap);
+        parsPlodine.run(this.barcodeMap);
+        parsSpar.run(this.barcodeMap);
+        System.out.println("\u001b[93mFinish hashing....\u001b[37m");
+//        ExecutorService executor = Executors.newFixedThreadPool(4);
+//
+//        executor.submit(() ->{
+//            databaseUpdateList.addAll(parserKaufland.run(this.barcodeMap));
+//        });
+//        executor.submit(() ->{
+//            databaseUpdateList.addAll(parserLidl.run(this.barcodeMap));
+//        });
+//        executor.submit(() -> {
+//            databaseUpdateList.addAll(parsPlodine.run(this.barcodeMap));
+//        });
+//        executor.submit(() -> {
+//            databaseUpdateList.addAll(parsSpar.run(this.barcodeMap));
+//        });
+//
+//        executor.shutdown();
+//        try {
+//            executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+//        } catch (InterruptedException e) {
+//            System.err.println("Multithreading error in engine: " + e.getMessage());
+//        }
 
-        try(ExecutorService executor = Executors.newFixedThreadPool(4)){
-            executor.submit(() ->{
-                databaseUpdateList.addAll(parserKaufland.run(this.barcodeMap));
-            });
-            executor.submit(() ->{
-                databaseUpdateList.addAll(parserLidl.run(this.barcodeMap));
-            });
-            executor.submit(() -> {
-                databaseUpdateList.addAll(parsPlodine.run(this.barcodeMap));
-            });
-            executor.submit(() -> {
-                databaseUpdateList.addAll(parsSpar.run(this.barcodeMap));
-            });
-
-        }
 
         save();
 

@@ -25,7 +25,7 @@ public abstract class Parser {
     protected abstract List<ParsedValues> parseData(String data, StringBuilder sb);
     protected abstract String parseAddress(File file, StringBuilder stringBuilder);
 
-    public List<ParsedValues> run(BarcodeMap mappedProducts) {
+    public List<ParsedValues> run(BarcodeMap barcodeMap) {
         List<ParsedValues> databaseUpdateList = new ArrayList<>();
         //Find all files in dir
         for(File file : this.fileList){
@@ -34,10 +34,11 @@ public abstract class Parser {
             if(storeAddress == null){
                 System.err.println("Couldn't parse address for file: " + file.getAbsolutePath());
                 //return databaseUpdateList;
+            }else {
+                storeInfo = new StoreInfo(storeAddress, chain);
+                barcodeMap.storeUpdate(storeInfo);
+                databaseUpdateList.addAll(updateLoop(file, barcodeMap));
             }
-            storeInfo = new StoreInfo(storeAddress, chain);
-            mappedProducts.storeUpdate(storeInfo);
-            databaseUpdateList.addAll(updateLoop(file, mappedProducts));
         }
         return databaseUpdateList;
     }

@@ -41,6 +41,7 @@ dumpster/
 links/
 logs/
 .idea/
+temp/
 links.bin
 save.bin
 userData.bin

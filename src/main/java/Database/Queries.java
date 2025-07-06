@@ -1,4 +1,8 @@
-package Parser;
+package Database;
+import FileFetcher.Store;
+import Parser.ParsedValues;
+import Parser.StoreInfo;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -8,41 +12,38 @@ import java.util.List;
 public class Queries {
 
     // Update database with new price
-    public static void insertPrice(List<ParsedValues> parsedValues, Connection connection) throws SQLException {
+    public static void insertPrice(ParsedValues pv, Connection connection) throws SQLException {
         String query = "INSERT INTO prices (price, product_id, store_id) SELECT ?,?,? " +
                 "WHERE (SELECT price FROM prices WHERE product_id = ? AND store_id = ? ORDER BY updated DESC LIMIT 1) IS DISTINCT FROM ?";
         PreparedStatement ps = connection.prepareStatement(query);
-        for(ParsedValues pv : parsedValues){
-            ps.setDouble(1, pv.getPrice());
-            ps.setLong(2, pv.getBarcode());
-            ps.setInt(3, 1);
-            ps.setInt(4, 1);
-            ps.setLong(5, pv.getBarcode());
-            ps.setDouble(6, pv.getPrice());
-            ps.addBatch();
-        }
 
-        ps.executeBatch();
+        ps.setDouble(1, pv.getPrice());
+        ps.setLong(2, pv.getBarcode());
+        ps.setInt(3, 1);
+        ps.setInt(4, 1);
+        ps.setLong(5, pv.getBarcode());
+        ps.setDouble(6, pv.getPrice());
+        ps.executeUpdate();
     }
     // Insert new product into database
-    public static void insertProduct(String barcode, String name, String brand, String unit_quantity, String unit, Connection connection) throws SQLException{
+    public static void insertProduct(ParsedValues pv, Connection connection) throws SQLException{
         String query = "INSERT INTO products (id, name, brand, unit_quantity, unit) VALUES (?,?,?,?,?)";
         PreparedStatement ps = connection.prepareStatement(query);
-        ps.setLong(1,Long.parseLong(barcode));
-        ps.setString(2, name);
-        ps.setString(3, brand);
-        ps.setString(4, unit_quantity);
-        ps.setString(5, unit);
+        ps.setLong(1, pv.getBarcode());
+        ps.setString(2, pv.getProductName());
+        ps.setString(3, pv.getBrand());
+        ps.setString(4, pv.getUnit_quantity());
+        ps.setString(5, pv.getUnit());
         ps.executeUpdate();
 
     }
 
     // Insert new store into database
-    public static void insertStore(String address, String chain, Connection connection) throws SQLException{
+    public static void insertStore(StoreInfo storeInfo, Connection connection) throws SQLException{
         String query = "INSERT INTO stores (address, chain_id) VALUES (?,?)";
         PreparedStatement ps = connection.prepareStatement(query);
-        ps.setString(1,address);
-        ps.setInt(2, Integer.parseInt(chain));
+        ps.setString(1,storeInfo.getAddress());
+        ps.setInt(2, storeInfo.getChain().ordinal());
         ps.executeUpdate();
     }
 
@@ -121,6 +122,16 @@ public class Queries {
         }
         ps.executeBatch();
 
+    }
+
+    // Insert chain
+    public static void insertNewChain(Store store, String url, Connection connection) throws SQLException{
+        String query = "INSERT INTO chains (id, name, url) VALUES (?,?,?)";
+        PreparedStatement ps = connection.prepareStatement(query);
+        ps.setShort(1, (short) store.ordinal());
+        ps.setString(2, store.toString());
+        ps.setString(3, url);
+        ps.executeUpdate();
     }
 
 }
