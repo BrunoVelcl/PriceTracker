@@ -7,6 +7,7 @@ import Parser.StoreInfo;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class PricePoint implements Comparable<PricePoint>, Serializable {
     private final ProductInfo productInfo;
@@ -52,14 +53,17 @@ public class PricePoint implements Comparable<PricePoint>, Serializable {
         return stores;
     }
 
-    //  Add store to list
+    //  Add store to node
     public void addStore(StoreInfo oStore){
         this.stores.add(oStore);
     }
 
-    // Remove store from list
-    private void removeStore(StoreInfo oStore){
+    // Remove store from node
+    private void removeStore(StoreInfo oStore, ConcurrentHashMap<Long ,PricePoint> hashMap){
         this.stores.remove(oStore);
+        if(this.stores.isEmpty()){
+            this.removePricePoint(hashMap);
+        }
     }
 
     // Open next node
@@ -78,16 +82,25 @@ public class PricePoint implements Comparable<PricePoint>, Serializable {
     }
 
     //Remove node
-    private void removePricePoint(){
-        if(previousNode != null) {
-            previousNode.setNextNode(this.nextNode);
+    private void removePricePoint(ConcurrentHashMap<Long, PricePoint> hashMap){
+
+        if(this.previousNode == null & this.nextNode == null){
+            hashMap.remove(this.productInfo.getBarcode());
         }
-        if(nextNode != null)
+        if(this.previousNode == null & this.nextNode != null){
+            hashMap.replace(nextNode.productInfo.getBarcode(), nextNode);
+        }
+        if(this.previousNode != null & this.nextNode == null){
+            previousNode.setNextNode(null);
+        }
+        if(this.previousNode != null & this.nextNode != null)
         {
-            nextNode.setPreviousNode(this.previousNode);
+            previousNode.setNextNode(nextNode);
+            nextNode.setPreviousNode(previousNode);
         }
-        this.nextNode = null;
+
         this.previousNode = null;
+        this.nextNode = null;
     }
 
     // Search for price node
@@ -115,16 +128,13 @@ public class PricePoint implements Comparable<PricePoint>, Serializable {
     }
 
     // Update logic
-    public boolean updatePrice(PricePoint firstNode, ParsedValues pv) {
+    public boolean updatePrice(PricePoint firstNode, ParsedValues pv, ConcurrentHashMap<Long, PricePoint> hashMap) {
         PricePoint pricePointExists = getPricePointByPrice(firstNode, pv.getPrice());
         if (pricePointExists != null) {
             if (!pricePointExists.inStore(pv.getStoreInfo())) { //Yes price is already up to date, no add store to price node
                 PricePoint currentPrice = getPricePointByStoreAddress(firstNode, pv.getStoreInfo());
                 if (currentPrice != null){ // Found current price, now we remove it
-                    currentPrice.removeStore(pv.getStoreInfo());
-                    if(currentPrice.getStores().isEmpty()){
-                        currentPrice.removePricePoint(); //Remove node if no stores have this price point
-                    }
+                    currentPrice.removeStore(pv.getStoreInfo(), hashMap);
                 }
                 pricePointExists.addStore(pv.getStoreInfo());//Add the new price now
                 return true;
@@ -132,10 +142,7 @@ public class PricePoint implements Comparable<PricePoint>, Serializable {
         } else {
             PricePoint currentPrice = getPricePointByStoreAddress(firstNode, pv.getStoreInfo());
             if (currentPrice != null) { // Price needs to be updated
-                currentPrice.removeStore(pv.getStoreInfo());
-                if(currentPrice.getStores().isEmpty()){
-                    currentPrice.removePricePoint(); //Remove node if no stores have this price point
-                }
+                currentPrice.removeStore(pv.getStoreInfo(), hashMap);
             }
             PricePoint node = firstNode;
             while (node.getNextNode() != null) { //Forward to last active node

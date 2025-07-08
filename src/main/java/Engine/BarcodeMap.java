@@ -9,14 +9,14 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class BarcodeMap implements Serializable{
-    private final Map<Long, PricePoint> barcodeMap = new ConcurrentHashMap<>();
-    private final Map<String, Long> productToBarcode = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<Long, PricePoint> barcodeMap = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, Long> productToBarcode = new ConcurrentHashMap<>();
     private final Set<StoreInfo> storeSet = new HashSet<>();
 
     public boolean update(ParsedValues pv){
         if(barcodeMap.containsKey(pv.getBarcode())){
             PricePoint firstNode = barcodeMap.get(pv.getBarcode());
-            return firstNode.updatePrice(firstNode, pv);
+            return firstNode.updatePrice(firstNode, pv, this.barcodeMap);
         }else {
             barcodeMap.put(
                     pv.getBarcode(),

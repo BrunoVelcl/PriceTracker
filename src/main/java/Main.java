@@ -40,7 +40,7 @@ public class Main {
 //            System.err.println("SQL EX: " + e.getMessage() + " || " + e.getSQLState());
 //        }
 //        System.out.println("\u001b[92mGREAT SUCCSESS!");
-        engine.load();
+        engine.updateData();
         engine.run();
 
     }
