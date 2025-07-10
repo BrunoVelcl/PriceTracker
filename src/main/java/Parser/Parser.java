@@ -62,9 +62,9 @@ public abstract class Parser {
             }
         }
 
-        //if(!file.delete()){
-        //    System.err.println("Couldn't delete file: " + file.getAbsolutePath());
-        //}
+        if(!file.delete()){
+            System.err.println("Couldn't delete file: " + file.getAbsolutePath());
+        }
 
         return databaseUpdateList;
     }

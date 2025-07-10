@@ -7,7 +7,9 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Queries {
 
@@ -134,4 +136,16 @@ public class Queries {
         ps.executeUpdate();
     }
 
+    public static Map<String, Integer> getAllStores(Connection con)throws SQLException{
+        String query = "SELECT address, id FROM stores";
+        PreparedStatement ps = con.prepareStatement(query);
+        Map<String, Integer> stores = new HashMap<>();
+        try(ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()){
+                stores.put(rs.getString("address"), rs.getInt("id"));
+            }
+        }
+        return stores;
+    }
 }

@@ -15,6 +15,10 @@ public class Engine {
     private List<StoreInfo> selectedStores = new ArrayList<>();
     private final File userData = new File("userData.bin");
 
+    public BarcodeMap getBarcodeMap() {
+        return barcodeMap;
+    }
+
     // Save method with custom dir path
     public void save(File save){
         try {
@@ -177,7 +181,7 @@ public class Engine {
 
     public void storeSelector(Scanner scanner){
         List<StoreInfo> allStores = new ArrayList<>();
-        for (StoreInfo storeInfo : barcodeMap.getStoreSet()){
+        for (StoreInfo storeInfo : barcodeMap.getStoreHash().keySet()){
             allStores.add(storeInfo);
             System.out.println(allStores.size()-1 + ". " + storeInfo.getChain().toString() + " | " + storeInfo.getAddress());
         }

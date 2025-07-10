@@ -11,7 +11,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class BarcodeMap implements Serializable{
     private final ConcurrentHashMap<Long, PricePoint> barcodeMap = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, Long> productToBarcode = new ConcurrentHashMap<>();
-    private final Set<StoreInfo> storeSet = new HashSet<>();
+    private final HashMap<StoreInfo, Integer> storeHash = new HashMap<>();
 
     public boolean update(ParsedValues pv){
         if(barcodeMap.containsKey(pv.getBarcode())){
@@ -56,8 +56,8 @@ public class BarcodeMap implements Serializable{
         return this.productToBarcode.get(pName);
     }
 
-    public Set<StoreInfo> getStoreSet() {
-        return storeSet;
+    public HashMap<StoreInfo, Integer> getStoreHash() {
+        return storeHash;
     }
 
     // Return a set of keys that contain more than one price point.
@@ -102,7 +102,7 @@ public class BarcodeMap implements Serializable{
     }
 
     public void storeUpdate(StoreInfo storeInfo) {
-        this.storeSet.add(storeInfo);
+        this.storeHash.putIfAbsent(storeInfo, storeInfo.hashCode());
     }
 
     public List<String> searchProduct(String searchTerm){
