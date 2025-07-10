@@ -53,6 +53,10 @@ public class Engine {
 
     private void printPrices(long barcode){
         List<PricePoint> pricePoints = this.barcodeMap.getPricesForBarcode(barcode);
+        if(pricePoints == null){
+            System.out.println("Invalid Barcode: " + barcode);
+            return;
+        }
         System.out.println("\u001b[37m");
         for(PricePoint pricePoint : pricePoints){
             double price = pricePoint.getPrice();
@@ -71,7 +75,6 @@ public class Engine {
                         System.out.print("\u001b[95m" + store.getChain() + ":" + store.getAddress() + "\u001b[37m || ");
                     }
                 }
-                //System.out.print(store.getChain() + ":" + store.getAddress() + " || ");
                 chains.add(store.getChain());
             }
             for(Store chain : chains){
@@ -146,36 +149,37 @@ public class Engine {
         ParserPlodineSpar parsSpar = new ParserPlodineSpar(Store.SPAR);
 
         System.out.println("\u001b[93mBegin hashing....\u001b[37m");
-        databaseUpdateList.addAll(parserKaufland.run(this.barcodeMap));//Delete this after initial setup and enable the threaded one
-        databaseUpdateList.addAll(parserLidl.run(this.barcodeMap));
-        databaseUpdateList.addAll(parsPlodine.run(this.barcodeMap));
-        databaseUpdateList.addAll(parsSpar.run(this.barcodeMap));
-        System.out.println("\u001b[93mFinish hashing....\u001b[37m");
-//        ExecutorService executor = Executors.newFixedThreadPool(4);
-//
-//        executor.submit(() ->{
-//            databaseUpdateList.addAll(parserKaufland.run(this.barcodeMap));
-//        });
-//        executor.submit(() ->{
-//            databaseUpdateList.addAll(parserLidl.run(this.barcodeMap));
-//        });
-//        executor.submit(() -> {
-//            databaseUpdateList.addAll(parsPlodine.run(this.barcodeMap));
-//        });
-//        executor.submit(() -> {
-//            databaseUpdateList.addAll(parsSpar.run(this.barcodeMap));
-//        });
-//
-//        executor.shutdown();
-//        try {
-//            executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
-//        } catch (InterruptedException e) {
-//            System.err.println("Multithreading error in engine: " + e.getMessage());
-//        }
+//        databaseUpdateList.addAll(parserKaufland.run(this.barcodeMap));//Delete this after initial setup and enable the threaded one
+//        databaseUpdateList.addAll(parserLidl.run(this.barcodeMap));
+//        databaseUpdateList.addAll(parsPlodine.run(this.barcodeMap));
+//        databaseUpdateList.addAll(parsSpar.run(this.barcodeMap));
 
-        System.out.println("len = " + databaseUpdateList.size());
+        ExecutorService executor = Executors.newFixedThreadPool(4);
+
+        executor.submit(() ->{
+            databaseUpdateList.addAll(parserKaufland.run(this.barcodeMap));
+        });
+        executor.submit(() ->{
+            databaseUpdateList.addAll(parserLidl.run(this.barcodeMap));
+        });
+        executor.submit(() -> {
+            databaseUpdateList.addAll(parsPlodine.run(this.barcodeMap));
+        });
+        executor.submit(() -> {
+            databaseUpdateList.addAll(parsSpar.run(this.barcodeMap));
+        });
+
+        executor.shutdown();
+        try {
+            executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+        } catch (InterruptedException e) {
+            System.err.println("Multithreading error in engine: " + e.getMessage());
+        }
+
+        System.out.print("\u001b[93mFinish hashing....\u001b[37m");
+        System.out.println("...number of updates:  = " + databaseUpdateList.size());
         save();
-        System.out.println("len = " + databaseUpdateList.size());
+        System.out.println("\u001b[92mMEMORY STRUCTURE BUILT AND READY FOR DISTRIBUTION\u001b[37m");
         return databaseUpdateList;
     }
 

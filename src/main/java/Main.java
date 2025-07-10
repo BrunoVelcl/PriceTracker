@@ -15,21 +15,21 @@ import java.util.List;
 public class Main {
     public static void main(String[] args) {
 
-        Downloader downloader = new Downloader();
-        if(downloader.download()){
-            Engine engine = new Engine();
-            engine.load();
-            List<ParsedValues> changes = engine.updateData();
-            if(!changes.isEmpty()){
-                Updatedb db = new Updatedb();
-                System.out.println("\u001b[93mWRITING TO DATABASE");
-                try {
-                    db.updateDb(changes);
-                }catch (SQLException e){
-                    System.err.println("SQL EX: " + e.getMessage() + " || " + e.getSQLState());
-                }
-            }
-        }
+//        Downloader downloader = new Downloader();
+//        if(downloader.download()){
+//            Engine engine = new Engine();
+//            engine.load();
+//            List<ParsedValues> changes = engine.updateData();
+//            if(!changes.isEmpty()){
+//                Updatedb db = new Updatedb();
+//                System.out.println("\u001b[93mWRITING TO DATABASE");
+//                try {
+//                    db.updateDb(changes);
+//                }catch (SQLException e){
+//                    System.err.println("SQL EX: " + e.getMessage() + " || " + e.getSQLState());
+//                }
+//            }
+//        }
 
 //        Engine engine = new Engine();
 //        List<ParsedValues> changes = engine.updateData();
@@ -40,12 +40,21 @@ public class Main {
 //            csv.createCsvForStores(new File("stores.csv"), engine.getBarcodeMap().getStoreHash());
 //            csv.createCsvForProducts(new File("products.csv"), changes);
 //            csv.createCsvForPrices(new File("prices.csv"),changes);
-//            db.firstTimeChainEntry();
+//            //db.firstTimeChainEntry();
 //            //db.updateDb(changes);
 //        }catch (SQLException e){
 //            System.err.println("SQL EX: " + e.getMessage() + " || " + e.getSQLState());
 //        }
 //        System.out.println("\u001b[92mGREAT SUCCSESS!");
+
+
+        Engine engine = new Engine();
+        engine.load();
+        engine.run();
+
+//        Downloader downloader = new Downloader();
+//        downloader.download();
+
 
     }
 }
