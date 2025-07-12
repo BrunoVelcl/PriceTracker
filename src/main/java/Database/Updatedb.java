@@ -19,112 +19,56 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import org.postgresql.PGConnection;
+import org.postgresql.copy.CopyManager;
+import org.postgresql.core.BaseConnection;
 
 public class Updatedb {
     protected final String server = "jdbc:postgresql://localhost:5432/postgres";
     protected final String userName = "postgres";
     protected final String password = "1410"; // TODO: what? is something wrong?
+    protected final Connection con;
+    protected final Statement statement;
 
-    public void updateDb(List<ParsedValues> pvList)throws SQLException {
-        int threadCount = 14;
+    public Updatedb() throws SQLException{
+            this.con = DriverManager.getConnection(this.server, this.userName, this.password);
+            this.statement = this.con.createStatement();
+    }
 
-        // Split the list into number of threads
-        int listSize = (pvList.size() / threadCount);
-        List<List<ParsedValues>> multyList = new ArrayList<>();
-        for(int i = 0; i < threadCount; i++){
-            multyList.add(new ArrayList<>());
-            for(int j = 0; j <= listSize; j++){
-                multyList.get(i).add(pvList.removeLast());
-                if(pvList.isEmpty()){
-                    break;
-                }
-            }
-        }
-
-        ExecutorService executor = Executors.newFixedThreadPool(threadCount);
-        for(List<ParsedValues> thread : multyList) {
-            final List<ParsedValues> copy = thread; // We need this for multithreading to work otherwise
-            executor.submit(() -> {
-                try {
-                    processThread(copy);
-                } catch (SQLException e) {
-                    System.err.println("SQL error: " + e.getMessage() + " || " + e.getSQLState());
-                }
-            });
-
-        }
-        executor.shutdown();
+    public void updateAll(List<ParsedValues> pvList, File pricesCsv){
         try {
-            executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
-        }catch (InterruptedException e){
-            System.err.println("Multithreading error: " + e.getMessage());
+            updatePricesAndStores(pvList);
+            importPrices(pricesCsv);
+        } catch (SQLException e) {
+            System.err.println("SQL Error: " + e.getMessage() + e.getSQLState());
         }
     }
 
-    private void processThread(List<ParsedValues> pvList) throws SQLException {
-
-        //We need a separate connection for every function instance since we are multithreading
-        Connection con;
-        try {
-            con = DriverManager.getConnection(this.server, this.userName, this.password);
-        }catch (SQLException e){
-            System.err.println("Couldn't connect to database: " + e.getMessage() + " ||| " + e.getSQLState());
-            return;
-        }
-
-        // Race condition loop
-        for(int i = 0; i < pvList.size(); i++){
-            if(!Queries.storeInDatabase(pvList.get(i).getStoreInfo().getAddress(), con)){
-                Queries.insertStore(pvList.get(i).getStoreInfo(), con);
+    public void updatePricesAndStores(List<ParsedValues> pvList)throws SQLException {
+        for(ParsedValues pv : pvList){
+            if(!Queries.storeInDatabase(pv.getStoreInfo().getAddress(), con)){
+                Queries.insertStore(pv.getStoreInfo(), con);
             }
-            if(!Queries.productInDatabase(pvList.get(i), con)){
-                try {
-                    Queries.insertProduct(pvList.get(i), con);
-                }catch (SQLException e){
-                    System.err.println("Found race condition: " + e.getMessage() + " || " +e.getSQLState());
-                    System.out.println(pvList.get(i).getProductName());
-                    System.out.println(pvList.get(i).getStoreInfo().getAddress());
-                    System.out.println(pvList.get(i).getStoreInfo().getChain());
-                    System.out.println("Retrying...");
-                    i--;
-                }
+            if(!Queries.productInDatabase(pv, con)){
+                Queries.insertProduct(pv, con);
             }
-            Queries.insertPrice(pvList.get(i),con);
         }
-
-//        for(ParsedValues pv : pvList){
-//            if(!Queries.storeInDatabase(pv.getStoreInfo().getAddress(), con)){
-//                Queries.insertStore(pv.getStoreInfo(), con);
-//            }
-//
-//            if(!Queries.productInDatabase(pv, con)){
-//                try {
-//                    Queries.insertProduct(pv, con);
-//                }catch (SQLException e){
-//                    System.err.println("Found race condition: " + e.getMessage() + " || " +e.getSQLState());
-//                }
-//            }
-//
-//            Queries.insertPrice(pv,con);
-//        }
     }
 
-    // Only called when initializing the database
+    public void importPrices(File csv)throws SQLException{
+        String query = "COPY prices(price, store_id, product_id) FROM " + "'" + csv.toString() + "'" + "WITH (DELIMITER ';')";
+        statement.execute(query);
+    }
+
+    /**Run this when setting up the db*/
     public void firstTimeChainEntry() throws SQLException{
-
-        Connection con;
-        try {
-            con = DriverManager.getConnection(this.server, this.userName, this.password);
-        }catch (SQLException e){
-            System.err.println("Couldn't connect to database: " + e.getMessage() + " ||| " + e.getSQLState());
-            return;
-        }
-
-        Queries.insertNewChain(Store.LIDL,"https://www.lidl.hr/", con );
-        Queries.insertNewChain(Store.KAUFLAND,"https://www.kaufland.hr/", con );
-        Queries.insertNewChain(Store.PLODINE,"https://www.plodine.hr", con );
-        Queries.insertNewChain(Store.SPAR,"https://www.spar.hr/", con );
-        Queries.insertNewChain(Store.STUDENAC,"https://www.studenac.hr/", con );
+        Queries.insertNewChain(Store.LIDL,"https://www.lidl.hr/", this.con );
+        Queries.insertNewChain(Store.KAUFLAND,"https://www.kaufland.hr/", this.con );
+        Queries.insertNewChain(Store.PLODINE,"https://www.plodine.hr", this.con );
+        Queries.insertNewChain(Store.SPAR,"https://www.spar.hr/", this.con );
+        Queries.insertNewChain(Store.STUDENAC,"https://www.studenac.hr/", this.con );
     }
+
+
 
 }

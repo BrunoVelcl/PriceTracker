@@ -13,23 +13,33 @@ import java.sql.SQLException;
 import java.util.List;
 
 public class Main {
+
+    public static String PRICESCSV = "G:\\Dev\\Prices\\prices.csv";
+
     public static void main(String[] args) {
 
-//        Downloader downloader = new Downloader();
-//        if(downloader.download()){
-//            Engine engine = new Engine();
-//            engine.load();
-//            List<ParsedValues> changes = engine.updateData();
-//            if(!changes.isEmpty()){
-//                Updatedb db = new Updatedb();
-//                System.out.println("\u001b[93mWRITING TO DATABASE");
-//                try {
-//                    db.updateDb(changes);
-//                }catch (SQLException e){
-//                    System.err.println("SQL EX: " + e.getMessage() + " || " + e.getSQLState());
-//                }
-//            }
-//        }
+        //Downloader downloader = new Downloader();
+        //if(downloader.download()){
+            Engine engine = new Engine();
+            engine.load();
+            List<ParsedValues> changes = engine.updateData();
+            if(!changes.isEmpty()){
+                System.out.println("\u001b[93mGENERATING CSV FILES\u001b[37m");
+                CSV generator = new CSV();
+                generator.createCsvForPrices(new File(PRICESCSV), changes);
+                System.out.println("\u001b[92mCSV GENERATED\u001b[37m");
+                Updatedb updatedb = null;
+                try {
+                    updatedb = new Updatedb();
+                } catch (SQLException e) {
+                    System.err.println("Can't create UpdateDatabase: " + e.getMessage());
+                }
+                System.out.println("\u001b[93mUPDATING DATABASE\u001b[37m");
+                assert updatedb != null;
+                updatedb.updateAll(changes, new File(PRICESCSV));
+
+            }
+        //}
 
 //        Engine engine = new Engine();
 //        List<ParsedValues> changes = engine.updateData();
@@ -48,13 +58,21 @@ public class Main {
 //        System.out.println("\u001b[92mGREAT SUCCSESS!");
 
 
-        Engine engine = new Engine();
-        engine.load();
-        engine.run();
+//        Engine engine = new Engine();
+//        engine.load();
+//        engine.run();
 
 //        Downloader downloader = new Downloader();
 //        downloader.download();
 
+//        CSV gen = new CSV();
+//        gen.createCsvForPrices(new File(PRICESCSV));
+//        try {
+//            Updatedb updatedb = new Updatedb();
+//            updatedb.importPrices(new File(PRICESCSV));
+//        } catch (SQLException e) {
+//            throw new RuntimeException(e);
+//        }
 
     }
 }

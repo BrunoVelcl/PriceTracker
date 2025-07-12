@@ -23,18 +23,18 @@ public class CSV {
 
     private void writeToFile(File csvFile){
         try {
-            Files.writeString(csvFile.toPath(), sb, StandardOpenOption.WRITE, StandardOpenOption.CREATE_NEW);
+            Files.writeString(csvFile.toPath(), sb, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
         }catch (IOException e){
             System.err.println("Problem with csv file: " + e.getMessage());
         }
     }
 
-    public void createCsvForPrices(File csvFile, List<ParsedValues> pvList)throws SQLException {
+    public void createCsvForPrices(File csvFile, List<ParsedValues> pvList){
         sb.setLength(0);
         for (ParsedValues pv : pvList){
             sb.append(pv.getPrice())
                     .append(this.delimiter)
-                    .append(pv.getStoreInfo().hashCode())
+                    .append(pv.getStoreInfo().getAddress().hashCode())
                     .append(this.delimiter)
                     .append(pv.getBarcode())
                     .append(this.newline);

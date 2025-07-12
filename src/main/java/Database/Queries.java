@@ -42,10 +42,11 @@ public class Queries {
 
     // Insert new store into database
     public static void insertStore(StoreInfo storeInfo, Connection connection) throws SQLException{
-        String query = "INSERT INTO stores (address, chain_id) VALUES (?,?)";
+        String query = "INSERT INTO stores (id, address, chain_id) VALUES (?,?,?)";
         PreparedStatement ps = connection.prepareStatement(query);
-        ps.setString(1,storeInfo.getAddress());
-        ps.setInt(2, storeInfo.getChain().ordinal());
+        ps.setInt(1,storeInfo.getAddress().hashCode());
+        ps.setString(2,storeInfo.getAddress());
+        ps.setInt(3, storeInfo.getChain().ordinal());
         ps.executeUpdate();
     }
 
