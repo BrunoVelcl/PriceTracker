@@ -2,7 +2,6 @@ package Engine;
 
 import FileFetcher.Store;
 import Parser.*;
-
 import java.io.*;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
@@ -121,18 +120,11 @@ public class Engine {
                         engine.printPrices(key);
                     }
                 }
-                case "5" -> {
-                    engine.storeSelector(scanner);
-                }
-                case "6" -> {
-                    engine.selectedStores.clear();
-                }
-                case "7" -> {
-                    engine.viewSelected();
-                }
-                case "q" ->{
-                    run = false;
-                }
+                case "5" -> engine.storeSelector(scanner);
+                case "6" -> engine.selectedStores.clear();
+                case "7" -> engine.viewSelected();
+                case "q" -> run = false;
+
             }
 
         }
@@ -149,32 +141,32 @@ public class Engine {
         ParserPlodineSpar parsSpar = new ParserPlodineSpar(Store.SPAR);
 
         System.out.println("\u001b[93mBegin hashing....\u001b[37m");
-//        databaseUpdateList.addAll(parserKaufland.run(this.barcodeMap));//Delete this after initial setup and enable the threaded one
-//        databaseUpdateList.addAll(parserLidl.run(this.barcodeMap));
-//        databaseUpdateList.addAll(parsPlodine.run(this.barcodeMap));
-//        databaseUpdateList.addAll(parsSpar.run(this.barcodeMap));
+        databaseUpdateList.addAll(parserKaufland.run(this.barcodeMap));//Delete this after initial setup and enable the threaded one
+        databaseUpdateList.addAll(parserLidl.run(this.barcodeMap));
+        databaseUpdateList.addAll(parsPlodine.run(this.barcodeMap));
+        databaseUpdateList.addAll(parsSpar.run(this.barcodeMap));
 
-        ExecutorService executor = Executors.newFixedThreadPool(4);
-
-        executor.submit(() ->{
-            databaseUpdateList.addAll(parserKaufland.run(this.barcodeMap));
-        });
-        executor.submit(() ->{
-            databaseUpdateList.addAll(parserLidl.run(this.barcodeMap));
-        });
-        executor.submit(() -> {
-            databaseUpdateList.addAll(parsPlodine.run(this.barcodeMap));
-        });
-        executor.submit(() -> {
-            databaseUpdateList.addAll(parsSpar.run(this.barcodeMap));
-        });
-
-        executor.shutdown();
-        try {
-            executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
-        } catch (InterruptedException e) {
-            System.err.println("Multithreading error in engine: " + e.getMessage());
-        }
+//        ExecutorService executor = Executors.newFixedThreadPool(4);
+//
+//        executor.submit(() ->{
+//            databaseUpdateList.addAll(parserKaufland.run(this.barcodeMap));
+//        });
+//        executor.submit(() ->{
+//            databaseUpdateList.addAll(parserLidl.run(this.barcodeMap));
+//        });
+//        executor.submit(() -> {
+//            databaseUpdateList.addAll(parsPlodine.run(this.barcodeMap));
+//        });
+//        executor.submit(() -> {
+//            databaseUpdateList.addAll(parsSpar.run(this.barcodeMap));
+//        });
+//
+//        executor.shutdown();
+//        try {
+//            executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+//        } catch (InterruptedException e) {
+//            System.err.println("Multithreading error in engine: " + e.getMessage());
+//        }
 
         System.out.print("\u001b[93mFinish hashing....\u001b[37m");
         System.out.println("...number of updates:  = " + databaseUpdateList.size());
@@ -184,20 +176,19 @@ public class Engine {
     }
 
     public void storeSelector(Scanner scanner){
-        List<StoreInfo> allStores = new ArrayList<>();
-        for (StoreInfo storeInfo : barcodeMap.getStoreHash().keySet()){
-            allStores.add(storeInfo);
-            System.out.println(allStores.size()-1 + ". " + storeInfo.getChain().toString() + " | " + storeInfo.getAddress());
+        List<StoreInfo> stores = barcodeMap.getStores();
+        for (int i = 0; i < stores.size(); i++){
+            System.out.println(i + ". " + stores.get(i).getChain().toString() + " | " + stores.get(i).getAddress());
         }
         while (true) {
             System.out.println("Enter store number to add or anything else to exit: ");
             String input = scanner.nextLine();
             try {
                 int index = Integer.parseInt(input);
-                if (index < 0 | index > allStores.size() - 1) {
+                if (index < 0 | index > stores.size() - 1) {
                     return;
                 }
-                this.selectedStores.add(allStores.get(index));
+                this.selectedStores.add(stores.get(index));
             } catch (NumberFormatException e) {
                 return;
             }

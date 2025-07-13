@@ -2,7 +2,6 @@ package Parser;
 
 import Engine.BarcodeMap;
 import FileFetcher.Store;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -33,12 +32,18 @@ public abstract class Parser {
             String storeAddress = parseAddress(file ,new StringBuilder());
             if(storeAddress == null){
                 System.err.println("Couldn't parse address for file: " + file.getAbsolutePath());
-                //return databaseUpdateList;
-            }else {
-                storeInfo = new StoreInfo(storeAddress, chain);
-                barcodeMap.storeUpdate(storeInfo);
-                databaseUpdateList.addAll(updateLoop(file, barcodeMap));
+                continue;
             }
+            //Figure out if store exists in the structure and add if it doesn't
+            Integer storeID = barcodeMap.getStoreIdFromAddress(storeAddress);
+            if(storeID != null){
+                storeInfo = barcodeMap.getStores().get(storeID);
+            }else {
+                storeInfo = new StoreInfo(storeAddress, chain, barcodeMap.getStores().size());
+                barcodeMap.storeUpdate(storeInfo);
+            }
+            databaseUpdateList.addAll(updateLoop(file, barcodeMap));
+
         }
         return databaseUpdateList;
     }

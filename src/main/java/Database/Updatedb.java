@@ -2,26 +2,13 @@ package Database;
 
 import Engine.BarcodeMap;
 import FileFetcher.Store;
-import Parser.CroCharMap;
 import Parser.ParsedValues;
 import Parser.StoreInfo;
-
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.StandardOpenOption;
 import java.sql.*;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-import org.postgresql.PGConnection;
-import org.postgresql.copy.CopyManager;
-import org.postgresql.core.BaseConnection;
+
 
 public class Updatedb {
     protected final String server = "jdbc:postgresql://localhost:5432/postgres";
@@ -35,23 +22,35 @@ public class Updatedb {
             this.statement = this.con.createStatement();
     }
 
-    public void updateAll(List<ParsedValues> pvList, File pricesCsv){
+    public void updateAll(BarcodeMap barcodeMap, List<ParsedValues> pvList, File pricesCsv){
         try {
-            updatePricesAndStores(pvList);
+            updateStores(barcodeMap);
+            updateProducts(pvList);
             importPrices(pricesCsv);
         } catch (SQLException e) {
             System.err.println("SQL Error: " + e.getMessage() + e.getSQLState());
         }
     }
 
-    public void updatePricesAndStores(List<ParsedValues> pvList)throws SQLException {
+    public void updateProducts(List<ParsedValues> pvList)throws SQLException {
+        Set<Long> productsInDatabase = Queries.returnAllBarcodes(this.con);
         for(ParsedValues pv : pvList){
-            if(!Queries.storeInDatabase(pv.getStoreInfo().getAddress(), con)){
-                Queries.insertStore(pv.getStoreInfo(), con);
+            if(!productsInDatabase.contains(pv.getBarcode())){
+                Queries.insertProduct(pv, this.con);
             }
-            if(!Queries.productInDatabase(pv, con)){
-                Queries.insertProduct(pv, con);
-            }
+        }
+    }
+
+    public void updateStores(BarcodeMap barcodeMap) throws SQLException{
+        List<StoreInfo> stores = barcodeMap.getStores();
+        int storesLastIndex = stores.size();
+        int dbCount = Queries.storeMaxId(this.con);
+        if(dbCount != 0){
+            dbCount++;
+        }
+        while (storesLastIndex > dbCount){
+            Queries.insertStore(stores.get(dbCount).getId(), stores.get(dbCount), con);
+            dbCount++;
         }
     }
 

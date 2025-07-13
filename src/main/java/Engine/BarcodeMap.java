@@ -3,7 +3,6 @@ package Engine;
 import Parser.ParsedValues;
 import Parser.ProductInfo;
 import Parser.StoreInfo;
-
 import java.io.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -11,7 +10,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class BarcodeMap implements Serializable{
     private final ConcurrentHashMap<Long, PricePoint> barcodeMap = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, Long> productToBarcode = new ConcurrentHashMap<>();
-    private final HashMap<StoreInfo, Integer> storeHash = new HashMap<>();
+    private final List<StoreInfo> stores = new ArrayList<>();
 
     public boolean update(ParsedValues pv){
         if(barcodeMap.containsKey(pv.getBarcode())){
@@ -56,8 +55,18 @@ public class BarcodeMap implements Serializable{
         return this.productToBarcode.get(pName);
     }
 
-    public HashMap<StoreInfo, Integer> getStoreHash() {
-        return storeHash;
+    public List<StoreInfo> getStores() {
+        return stores;
+    }
+
+    /**Returns store id of the store in the stores List or null if not found*/
+    public Integer getStoreIdFromAddress(String storeAddress){
+        for(StoreInfo store : this.stores){
+            if(store.getAddress().equals(storeAddress)){
+                return store.getId();
+            }
+        }
+        return null;
     }
 
     // Return a set of keys that contain more than one price point.
@@ -102,7 +111,9 @@ public class BarcodeMap implements Serializable{
     }
 
     public void storeUpdate(StoreInfo storeInfo) {
-        this.storeHash.putIfAbsent(storeInfo, storeInfo.hashCode());
+        if(!this.stores.contains(storeInfo)){
+            stores.add(storeInfo);
+        }
     }
 
     public List<String> searchProduct(String searchTerm){

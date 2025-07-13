@@ -1,7 +1,5 @@
 package Parser;
 
-import FileFetcher.Store;
-
 public class ParsedValues {
 
     private final Long barcode;

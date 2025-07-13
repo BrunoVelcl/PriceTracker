@@ -1,19 +1,15 @@
 package Database;
 
-import FileFetcher.Store;
 import Parser.ParsedValues;
 import Parser.StoreInfo;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardOpenOption;
-import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class CSV {
 
@@ -34,7 +30,7 @@ public class CSV {
         for (ParsedValues pv : pvList){
             sb.append(pv.getPrice())
                     .append(this.delimiter)
-                    .append(pv.getStoreInfo().getAddress().hashCode())
+                    .append(pv.getStoreInfo().getId())
                     .append(this.delimiter)
                     .append(pv.getBarcode())
                     .append(this.newline);

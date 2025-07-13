@@ -2,14 +2,11 @@ package Database;
 import FileFetcher.Store;
 import Parser.ParsedValues;
 import Parser.StoreInfo;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class Queries {
 
@@ -41,10 +38,10 @@ public class Queries {
     }
 
     // Insert new store into database
-    public static void insertStore(StoreInfo storeInfo, Connection connection) throws SQLException{
+    public static void insertStore(int id, StoreInfo storeInfo, Connection connection) throws SQLException{
         String query = "INSERT INTO stores (id, address, chain_id) VALUES (?,?,?)";
         PreparedStatement ps = connection.prepareStatement(query);
-        ps.setInt(1,storeInfo.getAddress().hashCode());
+        ps.setInt(1,id);
         ps.setString(2,storeInfo.getAddress());
         ps.setInt(3, storeInfo.getChain().ordinal());
         ps.executeUpdate();
@@ -76,6 +73,18 @@ public class Queries {
         return rs.next();
     }
 
+    //**Returns a Set of all barcodes in the database*/
+    public static Set<Long> returnAllBarcodes(Connection con)throws SQLException{
+        Set<Long> barcodes = new HashSet<>();
+        String query = "SELECT id FROM products";
+        PreparedStatement pr = con.prepareStatement(query);
+        ResultSet rs = pr.executeQuery();
+        while (rs.next()){
+            barcodes.add(rs.getLong("id"));
+        }
+        return barcodes;
+    }
+
     // Returns [id, chain_id] or []
     public static String[] findStoreByAddress(String address, Connection connection) throws SQLException{
         String query = "SELECT * FROM stores WHERE address = ?";
@@ -99,6 +108,14 @@ public class Queries {
 
     }
 
+    public static int storeMaxId(Connection connection)throws SQLException{
+        String query = "SELECT MAX(id) FROM stores";
+        PreparedStatement ps = connection.prepareStatement(query);
+        ResultSet rs = ps.executeQuery();
+        rs.next();
+        return rs.getInt("max");
+    }
+
     // Returns true if price is up to date and false if it changed
     public static boolean priceIsUpToDate(String barcode, String price, Connection connection) throws SQLException{
         String query = "SELECT price FROM prices WHERE product_id = ? ORDER BY updated DESC LIMIT  1";
@@ -109,7 +126,7 @@ public class Queries {
             return rs.getString("price").equals(price);
         }
         return false;
-    };
+    }
 
     public static void insertNewProducts(List<ParsedValues> parsedValues, Connection connection) throws SQLException{
         String query = "INSERT INTO products (id, name, brand, unit_quantity, unit) VALUES (?,?,?,?,?)" +
