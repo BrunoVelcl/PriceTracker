@@ -12,14 +12,8 @@ public class CSV {
 
     private final StringBuilder sb = new StringBuilder();
 
-    private void writeToFile(File csvFile){
-        try {
-            Files.writeString(csvFile.toPath(), sb, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
-        }catch (IOException e){
-            System.err.println("Problem with csv file: " + e.getMessage());
-        }
-    }
-
+    /**Create a .csv for all updates in prices.
+     * This csv will be used to ingest all price updates to the database.*/
     public void createCsvForPrices(File csvFile, List<ParsedValues> pvList){
         sb.setLength(0);
         final char delimiter = ';';
@@ -34,6 +28,15 @@ public class CSV {
         }
 
         writeToFile(csvFile);
+    }
+
+    /**Writes .csv to file.*/
+    private void writeToFile(File csvFile){
+        try {
+            Files.writeString(csvFile.toPath(), sb, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
+        }catch (IOException e){
+            System.err.println("Problem with csv file: " + e.getMessage());
+        }
     }
 
 }
