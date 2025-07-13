@@ -18,7 +18,7 @@ public class Engine {
         return barcodeMap;
     }
 
-    // Save method with custom dir path
+    /**Saves the data structure to a file.*/
     public void save(File save){
         try {
             ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(save));
@@ -28,12 +28,12 @@ public class Engine {
         }
     }
 
-    // Default save method
+    /**Saves the data structure to the default file.*/
     public void save() {
         save(defaultFile);
     }
 
-    // Load method with custom dir path
+    /**Load the data structure from a file.*/
     public void load(File save) {
         try {
            ObjectInputStream ois = new ObjectInputStream(new FileInputStream(save));
@@ -45,11 +45,12 @@ public class Engine {
         }
     }
 
-    // Default load method
+    /**Loads the data structure to the default file.*/
     public void load(){
         load(defaultFile);
     }
 
+    /**Given a barcode prints all price points to screen.*/
     private void printPrices(long barcode){
         List<PricePoint> pricePoints = this.barcodeMap.getPricesForBarcode(barcode);
         if(pricePoints == null){
@@ -83,6 +84,7 @@ public class Engine {
         }
     }
 
+    /**Runs the test client.*/
     public void run(){
         Scanner scanner = new Scanner(System.in);
         boolean run = true;
@@ -132,7 +134,7 @@ public class Engine {
 
     }
 
-    // Parses and updates the datastructures and returns a list of all changes made
+    /**Parses and updates the datastructures and returns a list of all changes made.*/
     public List<ParsedValues> updateData(){
         List<ParsedValues> databaseUpdateList = Collections.synchronizedList(new ArrayList<>());
         ParserKaufland parserKaufland = new ParserKaufland(Store.KAUFLAND);
@@ -141,40 +143,38 @@ public class Engine {
         ParserPlodineSpar parsSpar = new ParserPlodineSpar(Store.SPAR);
 
         System.out.println("\u001b[93mBegin hashing....\u001b[37m");
-        databaseUpdateList.addAll(parserKaufland.run(this.barcodeMap));//Delete this after initial setup and enable the threaded one
-        databaseUpdateList.addAll(parserLidl.run(this.barcodeMap));
-        databaseUpdateList.addAll(parsPlodine.run(this.barcodeMap));
-        databaseUpdateList.addAll(parsSpar.run(this.barcodeMap));
+//        databaseUpdateList.addAll(parserKaufland.run(this.barcodeMap));//Delete this after initial setup and enable the threaded one
 
-//        ExecutorService executor = Executors.newFixedThreadPool(4);
-//
-//        executor.submit(() ->{
-//            databaseUpdateList.addAll(parserKaufland.run(this.barcodeMap));
-//        });
-//        executor.submit(() ->{
-//            databaseUpdateList.addAll(parserLidl.run(this.barcodeMap));
-//        });
-//        executor.submit(() -> {
-//            databaseUpdateList.addAll(parsPlodine.run(this.barcodeMap));
-//        });
-//        executor.submit(() -> {
-//            databaseUpdateList.addAll(parsSpar.run(this.barcodeMap));
-//        });
-//
-//        executor.shutdown();
-//        try {
-//            executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
-//        } catch (InterruptedException e) {
-//            System.err.println("Multithreading error in engine: " + e.getMessage());
-//        }
+        ExecutorService executor = Executors.newFixedThreadPool(4);
+
+        executor.submit(() ->{
+            databaseUpdateList.addAll(parserKaufland.run(this.barcodeMap));
+        });
+        executor.submit(() ->{
+            databaseUpdateList.addAll(parserLidl.run(this.barcodeMap));
+        });
+        executor.submit(() -> {
+            databaseUpdateList.addAll(parsPlodine.run(this.barcodeMap));
+        });
+        executor.submit(() -> {
+            databaseUpdateList.addAll(parsSpar.run(this.barcodeMap));
+        });
+
+        executor.shutdown();
+        try {
+            executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+        } catch (InterruptedException e) {
+            System.err.println("Multithreading error in engine: " + e.getMessage());
+        }
 
         System.out.print("\u001b[93mFinish hashing....\u001b[37m");
-        System.out.println("...number of updates:  = " + databaseUpdateList.size());
+        System.out.println("...number of updates: " + databaseUpdateList.size());
         save();
         System.out.println("\u001b[92mMEMORY STRUCTURE BUILT AND READY FOR DISTRIBUTION\u001b[37m");
         return databaseUpdateList;
     }
 
+    /**Used for selecting specific stores.*/
     public void storeSelector(Scanner scanner){
         List<StoreInfo> stores = barcodeMap.getStores();
         for (int i = 0; i < stores.size(); i++){
@@ -195,6 +195,7 @@ public class Engine {
         }
     }
 
+    /**Product selection menu.*/
     private String productSelector(Scanner scanner){
         System.out.println("Enter product: ");
         String input = scanner.nextLine();
@@ -219,6 +220,7 @@ public class Engine {
         }
     }
 
+    /**Saves selected stores.*/
     private void saveUserData(){
         try {
             ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(this.userData));
@@ -228,6 +230,7 @@ public class Engine {
         }
     }
 
+    /**Loads selected stores.*/
     @SuppressWarnings("unchecked")
     private void loadUserData(){
         try {
@@ -244,6 +247,7 @@ public class Engine {
         }
     }
 
+    /**Prints out the currently selected stores.*/
     private void viewSelected() {
         for (StoreInfo store : this.selectedStores){
             System.out.print(store.getChain() + " : " + store.getAddress() + " || ");
