@@ -38,38 +38,10 @@ public class Main {
             }
         }
 
-//        Engine engine = new Engine();
-//        List<ParsedValues> changes = engine.updateData();
-//        Updatedb db = new Updatedb();
-//        CSV csv = new CSV();
-//        System.out.println("\u001b[93mWRITING TO DATABASE");
-//        try {
-//            csv.createCsvForStores(new File("stores.csv"), engine.getBarcodeMap().getStoreHash());
-//            csv.createCsvForProducts(new File("products.csv"), changes);
-//            csv.createCsvForPrices(new File("prices.csv"),changes);
-//            //db.firstTimeChainEntry();
-//            //db.updateDb(changes);
-//        }catch (SQLException e){
-//            System.err.println("SQL EX: " + e.getMessage() + " || " + e.getSQLState());
-//        }
-//        System.out.println("\u001b[92mGREAT SUCCSESS!");
 
-
-//        Engine engine = new Engine();
-//        engine.load();
-//        engine.run();
-
-//        Downloader downloader = new Downloader();
-//        downloader.download();
-
-//        CSV gen = new CSV();
-//        gen.createCsvForPrices(new File(PRICESCSV));
-//        try {
-//            Updatedb updatedb = new Updatedb();
-//            updatedb.importPrices(new File(PRICESCSV));
-//        } catch (SQLException e) {
-//            throw new RuntimeException(e);
-//        }
+        Engine engine = new Engine();
+        engine.load();
+        engine.run();
 
     }
 }
@@ -77,4 +49,3 @@ public class Main {
 //TODO: add timed tasks, add timestamp to FileFetcher.StoreNameLinks
 //TODO: add automatic cleanup for file fetcher
 //TODO: check Kaufland links lol
-//TODO: make a separate download check list
