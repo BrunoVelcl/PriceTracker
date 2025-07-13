@@ -22,6 +22,7 @@ public class Updatedb {
             this.statement = this.con.createStatement();
     }
 
+    /**Update the database with one call*/
     public void updateAll(BarcodeMap barcodeMap, List<ParsedValues> pvList, File pricesCsv){
         try {
             updateStores(barcodeMap);
@@ -32,6 +33,7 @@ public class Updatedb {
         }
     }
 
+    /**Inserts new products do the database*/
     public void updateProducts(List<ParsedValues> pvList)throws SQLException {
         Set<Long> productsInDatabase = Queries.returnAllBarcodes(this.con);
         for(ParsedValues pv : pvList){
@@ -41,6 +43,10 @@ public class Updatedb {
         }
     }
 
+    /**Inserts new stores to the database.
+     * This will only add new entries from the barcode map it cant retroactively change the entries,
+     * if for some reason the barcode map and database stores table go out of sync everything will need to be
+     * rebuilt from zero.*/
     public void updateStores(BarcodeMap barcodeMap) throws SQLException{
         List<StoreInfo> stores = barcodeMap.getStores();
         int storesLastIndex = stores.size();
@@ -54,12 +60,14 @@ public class Updatedb {
         }
     }
 
+    /**Import prices table from a csv file*/
     public void importPrices(File csv)throws SQLException{
         String query = "COPY prices(price, store_id, product_id) FROM " + "'" + csv.toString() + "'" + "WITH (DELIMITER ';')";
         statement.execute(query);
     }
 
     /**Run this when setting up the db*/
+    @SuppressWarnings("unused")
     public void firstTimeChainEntry() throws SQLException{
         Queries.insertNewChain(Store.LIDL,"https://www.lidl.hr/", this.con );
         Queries.insertNewChain(Store.KAUFLAND,"https://www.kaufland.hr/", this.con );
@@ -67,7 +75,6 @@ public class Updatedb {
         Queries.insertNewChain(Store.SPAR,"https://www.spar.hr/", this.con );
         Queries.insertNewChain(Store.STUDENAC,"https://www.studenac.hr/", this.con );
     }
-
 
 
 }
