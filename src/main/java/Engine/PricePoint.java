@@ -22,12 +22,16 @@ public class PricePoint implements Comparable<PricePoint>, Serializable {
         this.stores = new ArrayList<>();
     }
 
-    public double getPrice() {
-        return price;
+    public ProductInfo getProductInfo() {
+        return this.productInfo;
     }
 
-    public ProductInfo getProductInfo() {
-        return productInfo;
+    public double getPrice() {
+        return this.price;
+    }
+
+    public List<StoreInfo> getStores() {
+        return this.stores;
     }
 
     private void setPreviousNode(PricePoint previousNode) {
@@ -38,8 +42,9 @@ public class PricePoint implements Comparable<PricePoint>, Serializable {
         this.nextNode = nextNode;
     }
 
-    // The name of this function is kinda funky since, the function return true if Price point contains a given store,
-    // meaning in the real world true if this price is in this store
+    /**Returns true if the given store is in this price point.*/
+    // The name of this function is kinda funky since, the function returns true if Price point contains a given store,
+    // meaning in the real world true if this price is in this store.
     private boolean inStore(StoreInfo oStore){
         for (StoreInfo store : this.stores){
             if(store.getAddress().equals(oStore.getAddress())) {
@@ -48,17 +53,13 @@ public class PricePoint implements Comparable<PricePoint>, Serializable {
         }
         return false;
     }
-    //***Returns a list of stores from the current node*/
-    public List<StoreInfo> getStores() {
-        return stores;
-    }
 
-    //  Add store to node
+    /**Add store to node*/
     public void addStore(StoreInfo oStore){
         this.stores.add(oStore);
     }
 
-    // Remove store from node
+    /**Remove store from node*/
     private void removeStore(StoreInfo oStore, ConcurrentHashMap<Long ,PricePoint> hashMap){
         this.stores.remove(oStore);
         if(this.stores.isEmpty()){
@@ -66,22 +67,23 @@ public class PricePoint implements Comparable<PricePoint>, Serializable {
         }
     }
 
-    // Open next node
+    /**Open next node*/
     public PricePoint getNextNode() {
         return nextNode;
     }
 
-    // Open previous node
+    /**Open previous node*/
+    @SuppressWarnings("unused") //Currently unused, but removing it would imply a rewrite of the whole class to a singly linked list
     public PricePoint getPreviousNode(){
         return previousNode;
     }
-    // Add node
+    /**Add node*/
     private void addPricePoint(double Price){
         this.nextNode = new PricePoint(this.productInfo,Price);
         nextNode.setPreviousNode(this);
     }
 
-    //Remove node
+    /**Remove node*/
     private void removePricePoint(ConcurrentHashMap<Long, PricePoint> hashMap){
 
         if(this.previousNode == null & this.nextNode == null){
@@ -103,7 +105,7 @@ public class PricePoint implements Comparable<PricePoint>, Serializable {
         this.nextNode = null;
     }
 
-    // Search for price node
+    /**Search for price node*/
     private static PricePoint getPricePointByPrice(PricePoint firstNode,Double price){
         PricePoint node = firstNode;
         while (node != null){
@@ -115,7 +117,7 @@ public class PricePoint implements Comparable<PricePoint>, Serializable {
         return null;
     }
 
-    // Search for StoreInfo
+    /**Search for StoreInfo*/
     private static PricePoint getPricePointByStoreAddress(PricePoint firstNode, StoreInfo store){
         PricePoint node = firstNode;
         while (node != null){
@@ -127,7 +129,7 @@ public class PricePoint implements Comparable<PricePoint>, Serializable {
         return null;
     }
 
-    // Update logic
+    /**Update logic*/
     public boolean updatePrice(PricePoint firstNode, ParsedValues pv, ConcurrentHashMap<Long, PricePoint> hashMap) {
         PricePoint pricePointExists = getPricePointByPrice(firstNode, pv.getPrice());
         if (pricePointExists != null) {
