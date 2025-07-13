@@ -12,6 +12,13 @@ public class BarcodeMap implements Serializable{
     private final ConcurrentHashMap<String, Long> productToBarcode = new ConcurrentHashMap<>();
     private final List<StoreInfo> stores = new ArrayList<>();
 
+    public List<StoreInfo> getStores() {
+        return stores;
+    }
+
+    /**Give the data structure a parsed value to process.
+     * Returns <i>true</i> if there was a change.
+     * Returns <i>false</i> if nothing changed.*/
     public boolean update(ParsedValues pv){
         if(barcodeMap.containsKey(pv.getBarcode())){
             PricePoint firstNode = barcodeMap.get(pv.getBarcode());
@@ -32,7 +39,7 @@ public class BarcodeMap implements Serializable{
             return true;
         }
     }
-
+    /**Searches the structure for all prices of a single product and returns them*/
     public List<PricePoint> getPricesForBarcode(Long barcode){
         if(!barcodeMap.containsKey(barcode)){
             return null;
@@ -47,16 +54,9 @@ public class BarcodeMap implements Serializable{
         return list;
     }
 
-    public List<PricePoint> getPricesForProductName(String pName){
-        return getPricesForBarcode(this.productToBarcode.get(pName));
-    }
-
+    /**Returns the barcode of a product given its name.*/
     public long getBarcodeForProductName(String pName){
         return this.productToBarcode.get(pName);
-    }
-
-    public List<StoreInfo> getStores() {
-        return stores;
     }
 
     /**Returns store id of the store in the stores List or null if not found*/
@@ -69,7 +69,7 @@ public class BarcodeMap implements Serializable{
         return null;
     }
 
-    // Return a set of keys that contain more than one price point.
+    /** Return a list of keys that contain more than one price point.*/
     public List<Long> findPriceVariations(){
         List<Long> foundKeys = new ArrayList<>();
         for(Long key : barcodeMap.keySet()){
@@ -80,6 +80,8 @@ public class BarcodeMap implements Serializable{
         return foundKeys;
     }
 
+    /**Takes a list of stores and returns a list of barcodes where one of those stores price for a given item,
+     * is not the worst price currently available*/
     public List<Long> findDealForSelectedStores(List<StoreInfo> storesToCheck){
         List<Long> foundKeys = new ArrayList<>();
         keyIteration:
@@ -110,12 +112,14 @@ public class BarcodeMap implements Serializable{
         return foundKeys;
     }
 
+    /**Adds a new store if it doesn't exist.*/
     public void storeUpdate(StoreInfo storeInfo) {
         if(!this.stores.contains(storeInfo)){
             stores.add(storeInfo);
         }
     }
 
+    /**Returns a list of products that match to the search term that was passed in.*/
     public List<String> searchProduct(String searchTerm){
         List<String> found = new ArrayList<>();
         Set<String> keySet = this.productToBarcode.keySet();
