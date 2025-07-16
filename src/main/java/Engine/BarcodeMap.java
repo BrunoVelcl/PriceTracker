@@ -1,5 +1,6 @@
 package Engine;
 
+import FileFetcher.Store;
 import Parser.ParsedValues;
 import Parser.ProductInfo;
 import Parser.StoreInfo;
@@ -11,6 +12,8 @@ public class BarcodeMap implements Serializable{
     private final ConcurrentHashMap<Long, PricePoint> barcodeMap = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, Long> productToBarcode = new ConcurrentHashMap<>();
     private final List<StoreInfo> stores = new ArrayList<>();
+    @Serial
+    private static final long serialVersionUID = -8123781007419010359L; //TODO: remove when running on a server, only used while in development so that everything doesn't brake when a trivial change is made.
 
     public List<StoreInfo> getStores() {
         return stores;
@@ -129,6 +132,97 @@ public class BarcodeMap implements Serializable{
             }
         }
         return found;
+    }
+
+    public void save(File saveFile){
+        final short transition = -2; //Marks transition between mapped data and stores
+        final long terminator = -1; //Marks EOF
+        final double notPrice = -1;
+        try(DataOutputStream dos = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(saveFile)))){
+            for(StoreInfo store : this.stores){
+                dos.writeShort(store.getId());
+                dos.writeUTF(store.getAddress());
+                dos.writeByte(store.getChain().ordinal());
+            }
+            dos.writeShort(transition);
+            for(long barcode : this.barcodeMap.keySet()){
+                PricePoint pp = this.barcodeMap.get(barcode);
+                dos.writeLong(pp.getProductInfo().getBarcode());
+                dos.writeUTF(pp.getProductInfo().getProductName());
+                dos.writeUTF(pp.getProductInfo().getBrand());
+                dos.writeUTF(pp.getProductInfo().getUnit_quantity());
+                dos.writeUTF(pp.getProductInfo().getUnit());
+                while (pp != null){
+                    dos.writeDouble(pp.getPrice());
+                    dos.writeShort(pp.getStores().size()); //The number of shorts that are after this point
+                    for(StoreInfo store : pp.getStores()){
+                        dos.writeShort(store.getId());
+                    }
+                    pp = pp.getNextNode();
+                }
+                dos.writeDouble(notPrice);
+            }
+            dos.writeLong(terminator);
+        }catch (IOException e){
+            System.err.println("Problem with writing to savefile: " + e.getMessage());
+        }
+    }
+
+    public void load(File saveFile){
+        final long transition = -2L; //Marks transition between mapped data and stores
+        final long terminator = -1; //Marks EOF
+        final double notPrice = -1;
+        long currentBarcode = -1;
+        String currentProductName = "";
+        String currentBrand = "";
+        String currentUnitQuantity = "";
+        String currentUnit = "";
+        double currentPrice = -1;
+        short idsToRead = 0;
+        String currentAddress = "";
+        Store currentChain = null;
+        int currentId = -2;
+        try(DataInputStream dis = new DataInputStream(new BufferedInputStream(new FileInputStream(saveFile)))){
+
+            while(true){
+                currentId = dis.readShort();
+                if(currentId == transition) {break;}
+                currentAddress = dis.readUTF();
+                currentChain = Store.values()[dis.readByte()];
+                this.stores.add(new StoreInfo(currentAddress, currentChain, currentId));
+            }
+            while(true){
+                currentBarcode = dis.readLong();
+                if(currentBarcode == terminator){break;}
+                currentProductName = dis.readUTF();
+                currentBrand = dis.readUTF();
+                currentUnitQuantity = dis.readUTF();
+                currentUnit = dis.readUTF();
+                while (true) {
+                    currentPrice = dis.readDouble();
+                    if(currentPrice == notPrice){break;}
+                    PricePoint pp = new PricePoint(new ProductInfo(currentBarcode, currentProductName, currentBrand, currentUnitQuantity, currentUnit),currentPrice);
+                    if(!this.barcodeMap.containsKey(currentBarcode)){
+                        this.barcodeMap.put(currentBarcode, pp);
+                        this.productToBarcode.put(currentProductName, currentBarcode);
+                    }else{
+                        PricePoint node = barcodeMap.get(currentBarcode);
+                        while (node.getNextNode() != null){
+                            node = node.getNextNode();
+                        }
+                        node.setNextNode(pp);
+                        pp.setPreviousNode(node);
+                    }
+
+                    idsToRead = dis.readShort();
+                    for(short i = 0; i < idsToRead; i++){
+                        pp.addStore(this.stores.get(dis.readShort()));
+                    }
+                }
+            }
+        }catch (IOException e){
+            System.err.println("Problem with reading saveFile: " + e.getMessage());
+        }
     }
 }
 

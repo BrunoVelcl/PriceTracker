@@ -5,5 +5,10 @@ public enum Store{
     KAUFLAND,
     SPAR,
     STUDENAC,
-    PLODINE,
+    PLODINE;
+
+    public static Store fromOrdinal(int ordinal){
+        return values()[ordinal];
+    }
 }
+

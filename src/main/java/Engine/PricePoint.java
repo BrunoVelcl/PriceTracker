@@ -15,6 +15,7 @@ public class PricePoint implements Comparable<PricePoint>, Serializable {
     private List<StoreInfo> stores = null;
     private PricePoint previousNode = null;
     private PricePoint nextNode = null;
+    private static final long serialVersionUID = 5640490161486260773L;
 
     public PricePoint(ProductInfo productInfo, double price) {
         this.productInfo = productInfo;
@@ -34,11 +35,11 @@ public class PricePoint implements Comparable<PricePoint>, Serializable {
         return this.stores;
     }
 
-    private void setPreviousNode(PricePoint previousNode) {
+    public void setPreviousNode(PricePoint previousNode) {
         this.previousNode = previousNode;
     }
 
-    private void setNextNode(PricePoint nextNode) {
+    public void setNextNode(PricePoint nextNode) {
         this.nextNode = nextNode;
     }
 

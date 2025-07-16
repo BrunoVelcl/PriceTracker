@@ -85,13 +85,16 @@ public class Engine {
     }
 
     /**Runs the test client.*/
-    public void run(){
+    public static void run(){
         Scanner scanner = new Scanner(System.in);
         boolean run = true;
         long barcode;
         String option;
         Engine engine = new Engine();
-        engine.load();
+        final long start = System.nanoTime();
+        engine.barcodeMap.load(engine.defaultFile);
+        final long end = System.nanoTime();
+        System.out.println("Time to load: " + ((end - start)/1000000L) + "ms");
         engine.loadUserData();
         while (run){
             System.out.println("Options: 1. Barcode search | 2. Product Search | 3. Find deals for selected. | 4. All diffs | 5. Store Selector | 6. Clear user data. | 7. View selections | Q. quit");
@@ -130,7 +133,8 @@ public class Engine {
             }
 
         }
-        engine.saveUserData();
+        //engine.saveUserData();
+        engine.barcodeMap.save(engine.defaultFile);
 
     }
 
@@ -169,7 +173,7 @@ public class Engine {
 
         System.out.print("\u001b[93mFinish hashing....\u001b[37m");
         System.out.println("...number of updates: " + databaseUpdateList.size());
-        save();
+        this.barcodeMap.save(defaultFile);
         System.out.println("\u001b[92mMEMORY STRUCTURE BUILT AND READY FOR DISTRIBUTION\u001b[37m");
         return databaseUpdateList;
     }
