@@ -172,16 +172,16 @@ public class BarcodeMap implements Serializable{
         final long transition = -2L; //Marks transition between mapped data and stores
         final long terminator = -1; //Marks EOF
         final double notPrice = -1;
-        long currentBarcode = -1;
-        String currentProductName = "";
-        String currentBrand = "";
-        String currentUnitQuantity = "";
-        String currentUnit = "";
-        double currentPrice = -1;
-        short idsToRead = 0;
-        String currentAddress = "";
-        Store currentChain = null;
-        int currentId = -2;
+        long currentBarcode;
+        String currentProductName;
+        String currentBrand;
+        String currentUnitQuantity;
+        String currentUnit;
+        double currentPrice;
+        short idsToRead;
+        String currentAddress;
+        Store currentChain;
+        int currentId;
         try(DataInputStream dis = new DataInputStream(new BufferedInputStream(new FileInputStream(saveFile)))){
 
             while(true){

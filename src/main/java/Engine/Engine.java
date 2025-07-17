@@ -9,7 +9,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 public class Engine {
-    private BarcodeMap barcodeMap = new BarcodeMap();
+    private final BarcodeMap barcodeMap = new BarcodeMap();
     private final File defaultFile = new File("save.bin");
     private List<StoreInfo> selectedStores = new ArrayList<>();
     private final File userData = new File("userData.bin");
@@ -18,31 +18,9 @@ public class Engine {
         return barcodeMap;
     }
 
-    /**Saves the data structure to a file.*/
-    public void save(File save){
-        try {
-            ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(save));
-            oos.writeObject(this.barcodeMap);
-        }catch (IOException e){
-            System.err.println("File read error: " + e.getMessage());
-        }
-    }
-
-    /**Saves the data structure to the default file.*/
-    public void save() {
-        save(defaultFile);
-    }
-
     /**Load the data structure from a file.*/
     public void load(File save) {
-        try {
-           ObjectInputStream ois = new ObjectInputStream(new FileInputStream(save));
-           this.barcodeMap = (BarcodeMap) ois.readObject();
-        } catch (IOException e) {
-            System.err.println("File read error: " + e.getMessage());
-        } catch (ClassNotFoundException e){
-            System.err.println("Couldn't read object from provided file: " + e.getMessage());
-        }
+        this.barcodeMap.load(save);
     }
 
     /**Loads the data structure to the default file.*/
@@ -224,16 +202,6 @@ public class Engine {
         }
     }
 
-    /**Saves selected stores.*/
-    private void saveUserData(){
-        try {
-            ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(this.userData));
-            oos.writeObject(this.selectedStores);
-        }catch (IOException e){
-            System.err.println("Can't create userData: " + e.getMessage());
-        }
-    }
-
     /**Loads selected stores.*/
     @SuppressWarnings("unchecked")
     private void loadUserData(){
@@ -259,7 +227,6 @@ public class Engine {
         System.out.println();
     }
 
-
-
+    
 }
 
