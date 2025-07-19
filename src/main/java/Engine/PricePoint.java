@@ -9,13 +9,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class PricePoint implements Comparable<PricePoint>, Serializable {
+public class PricePoint implements Comparable<PricePoint>{
     private final ProductInfo productInfo;
     private final double price;
     private List<StoreInfo> stores = null;
     private PricePoint previousNode = null;
     private PricePoint nextNode = null;
-    private static final long serialVersionUID = 5640490161486260773L;
 
     public PricePoint(ProductInfo productInfo, double price) {
         this.productInfo = productInfo;

@@ -14,7 +14,7 @@ public class Downloader {
     @SuppressWarnings("unchecked")
     public boolean download(String destinationDir){
 
-        List<StoreNameLinks> existingLinks;
+        List<StoreNameLinks> existingLinks = new ArrayList<>();
 
         File linksBin = new File("links.bin");
         if(!linksBin.exists()){
@@ -28,12 +28,23 @@ public class Downloader {
             }
         }
 
-        try(ObjectInputStream inputStream = new ObjectInputStream(new FileInputStream(linksBin))){
-            existingLinks = (List<StoreNameLinks>) inputStream.readObject();
-        }catch (IOException | ClassNotFoundException e){
-            System.err.println("WARNING: required file not found attempting to generate new one.");
-           existingLinks = new ArrayList<>();
+        try(DataInputStream dis = new DataInputStream(new BufferedInputStream(new FileInputStream(linksBin)))){
+            String fileName;
+            String link;
+            Store store;
+            int timestamp;
+            int entryCnt = dis.readInt(); // First entry is an int with len()
+            for(int i = 0; i < entryCnt; i++){
+                fileName = dis.readUTF();
+                link = dis.readUTF();
+                store = Store.fromOrdinal(dis.readInt());
+                timestamp = dis.readInt();
+                existingLinks.add(new StoreNameLinks(fileName, link, store, timestamp));
+            }
+        }catch (IOException e){
+            System.err.println("FAILED TO READ LINK DATA TO DISK" + e.getMessage());
         }
+
             //Get store links
             List<StoreNameLinks>toDownload = LinkFetcher.getAllStores(existingLinks);
 
@@ -44,11 +55,18 @@ public class Downloader {
 
             downloadFromLinks(toDownload,existingLinks, destinationDir);
 
-        try(ObjectOutputStream outputStream = new ObjectOutputStream(new FileOutputStream(linksBin))){
-            outputStream.writeObject(existingLinks);
-        }catch(IOException e){
-            System.err.println("FAILED TO WRITE LINK DATA TO DISK");
+        try(DataOutputStream dos = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(linksBin)))){
+            dos.writeInt(existingLinks.size());
+            for(StoreNameLinks link : existingLinks){
+                dos.writeUTF(link.getFileName());
+                dos.writeUTF(link.getLink());
+                dos.writeInt(link.getStore().ordinal());
+                dos.writeInt(link.getTimestamp());
+            }
+        }catch (IOException e){
+            System.err.println("FAILED TO WRITE LINK DATA TO DISK" + e.getMessage());
         }
+
 
         System.out.println("\u001b[32mDOWNLOAD COMPLETE\u001b[37m");
         return true;

@@ -13,7 +13,7 @@ public class Main {
 
     public static void main(String[] args) {
 
-//        Downloader downloader = new Downloader();
+        Downloader downloader = new Downloader();
 //        if(downloader.download()){
 //            Engine engine = new Engine();
 //        System.out.println("\u001b[33mLoading...\u001b[37m");
@@ -37,10 +37,11 @@ public class Main {
 //
 //            }
 //        }
+//
+//
+//        Engine.run();
 
-
-        Engine.run();
-
+        downloader.download();
     }
 }
 

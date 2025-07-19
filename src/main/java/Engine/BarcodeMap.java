@@ -8,12 +8,10 @@ import java.io.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class BarcodeMap implements Serializable{
+public class BarcodeMap{
     private final ConcurrentHashMap<Long, PricePoint> barcodeMap = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, Long> productToBarcode = new ConcurrentHashMap<>();
     private final List<StoreInfo> stores = new ArrayList<>();
-    @Serial
-    private static final long serialVersionUID = -8123781007419010359L; //TODO: remove when running on a server, only used while in development so that everything doesn't brake when a trivial change is made.
 
     public List<StoreInfo> getStores() {
         return stores;

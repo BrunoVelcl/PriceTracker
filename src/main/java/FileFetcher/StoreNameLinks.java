@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.util.List;
 import java.time.LocalDate;
 
-public class StoreNameLinks implements Serializable {
+public class StoreNameLinks implements Serializable{
     private final String fileName;
     private final String link;
     private final Store store;
@@ -20,6 +20,19 @@ public class StoreNameLinks implements Serializable {
 
     }
 
+    /**Used when reading from file*/
+    public StoreNameLinks(String fileName, String link, Store store, int timestamp) {
+        this.fileName = fileName;
+        this.link = link;
+        this.store = store;
+        this.timestamp = timestamp;
+    }
+
+    public String getFileName() {
+        return fileName;
+    }
+
+    //TODO: delete this when not used anymore
     public String getName(){
         return fileName;
     }
@@ -30,6 +43,11 @@ public class StoreNameLinks implements Serializable {
 
     public Store getStore() { return store;}
 
+    public int getTimestamp() {
+        return timestamp;
+    }
+
+    //TODO: delete this when not used anymore
     public int getDay(){ return timestamp;}
 
     public boolean isEqual(StoreNameLinks other){
