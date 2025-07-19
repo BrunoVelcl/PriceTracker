@@ -40,7 +40,7 @@ public class Main {
 //
 //
 //        Engine.run();
-
+        downloader.resetDay(2025, 7,19);
         downloader.download();
     }
 }

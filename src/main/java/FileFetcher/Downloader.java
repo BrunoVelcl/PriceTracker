@@ -2,24 +2,23 @@ package FileFetcher;
 
 import java.io.*;
 import java.net.URI;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
-
 public class Downloader {
 
-    @SuppressWarnings("unchecked")
+    private static final File LINKSBIN = new File("links.bin");
+    
     public boolean download(String destinationDir){
-
-        List<StoreNameLinks> existingLinks = new ArrayList<>();
-
-        File linksBin = new File("links.bin");
-        if(!linksBin.exists()){
+        
+        if(!LINKSBIN.exists()){
             try {
-                if(!linksBin.createNewFile()){
+                if(!LINKSBIN.createNewFile()){
                     System.out.println("File system problem, couldn't create files.");
                 }
             }catch (IOException e){
@@ -28,24 +27,9 @@ public class Downloader {
             }
         }
 
-        try(DataInputStream dis = new DataInputStream(new BufferedInputStream(new FileInputStream(linksBin)))){
-            String fileName;
-            String link;
-            Store store;
-            int timestamp;
-            int entryCnt = dis.readInt(); // First entry is an int with len()
-            for(int i = 0; i < entryCnt; i++){
-                fileName = dis.readUTF();
-                link = dis.readUTF();
-                store = Store.fromOrdinal(dis.readInt());
-                timestamp = dis.readInt();
-                existingLinks.add(new StoreNameLinks(fileName, link, store, timestamp));
-            }
-        }catch (IOException e){
-            System.err.println("FAILED TO READ LINK DATA TO DISK" + e.getMessage());
-        }
+        List<StoreNameLinks> existingLinks = loadLinks(LINKSBIN);
 
-            //Get store links
+        //Get store links
             List<StoreNameLinks>toDownload = LinkFetcher.getAllStores(existingLinks);
 
             if(toDownload.isEmpty()){
@@ -55,7 +39,13 @@ public class Downloader {
 
             downloadFromLinks(toDownload,existingLinks, destinationDir);
 
-        try(DataOutputStream dos = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(linksBin)))){
+        saveLinks(LINKSBIN, existingLinks);
+        System.out.println("\u001b[32mDOWNLOAD COMPLETE\u001b[37m");
+        return true;
+    }
+
+    private static void saveLinks(File LINKSBIN, List<StoreNameLinks> existingLinks) {
+        try(DataOutputStream dos = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(LINKSBIN)))){
             dos.writeInt(existingLinks.size());
             for(StoreNameLinks link : existingLinks){
                 dos.writeUTF(link.getFileName());
@@ -66,10 +56,27 @@ public class Downloader {
         }catch (IOException e){
             System.err.println("FAILED TO WRITE LINK DATA TO DISK" + e.getMessage());
         }
+    }
 
-
-        System.out.println("\u001b[32mDOWNLOAD COMPLETE\u001b[37m");
-        return true;
+    private static List<StoreNameLinks> loadLinks(File LINKSBIN) {
+        List<StoreNameLinks> links = new ArrayList<>();
+        try(DataInputStream dis = new DataInputStream(new BufferedInputStream(new FileInputStream(LINKSBIN)))){
+            String fileName;
+            String link;
+            Store store;
+            int timestamp;
+            int entryCnt = dis.readInt(); // First entry is an int with len()
+            for(int i = 0; i < entryCnt; i++){
+                fileName = dis.readUTF();
+                link = dis.readUTF();
+                store = Store.fromOrdinal(dis.readInt());
+                timestamp = dis.readInt();
+                links.add(new StoreNameLinks(fileName, link, store, timestamp));
+            }
+        }catch (IOException e){
+            System.err.println("FAILED TO READ LINK DATA TO DISK" + e.getMessage());
+        }
+        return links;
     }
 
     //TODO: DELETE, this bullshit shouldn't exist
@@ -140,5 +147,14 @@ public class Downloader {
         }
 
         System.out.printf("Downloaded files: %d\n", downloaded.size());
+    }
+
+    /**Use for removing all files from the downloaded list for a given day*/
+    public void resetDay(int year, int month, int day ){
+        LocalDate enteredDate = LocalDate.of(year, month, day);
+        List<StoreNameLinks> list = loadLinks(LINKSBIN);
+        int dayToDelete = (year << 16) + enteredDate.getDayOfYear();
+        list.removeIf(link -> link.getTimestamp() == dayToDelete);
+        saveLinks(LINKSBIN, list);
     }
 }
