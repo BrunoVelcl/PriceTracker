@@ -1,10 +1,8 @@
 package FileFetcher;
-
-import java.io.Serializable;
 import java.util.List;
 import java.time.LocalDate;
 
-public class StoreNameLinks implements Serializable{
+public class StoreNameLinks{
     private final String fileName;
     private final String link;
     private final Store store;
@@ -46,9 +44,6 @@ public class StoreNameLinks implements Serializable{
     public int getTimestamp() {
         return timestamp;
     }
-
-    //TODO: delete this when not used anymore
-    public int getDay(){ return timestamp;}
 
     public boolean isEqual(StoreNameLinks other){
         return (this.fileName.equals(other.fileName) & this.link.equals(other.link));

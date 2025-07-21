@@ -1,47 +1,67 @@
+import ANSIEscapes.TextColor;
 import Database.CSV;
 import Database.Updatedb;
 import Engine.Engine;
 import FileFetcher.Downloader;
+import FileFetcher.Store;
 import Parser.ParsedValues;
+import Parser.StoreInfo;
+
 import java.io.File;
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Main {
 
     public static String PRICESCSV = "G:\\Dev\\Prices\\prices.csv";
+    public static String NEW_LINE = System.lineSeparator();
 
     public static void main(String[] args) {
 
         Downloader downloader = new Downloader();
-//        if(downloader.download()){
-//            Engine engine = new Engine();
-//        System.out.println("\u001b[33mLoading...\u001b[37m");
-//            engine.load();
-//            List<ParsedValues> changes = engine.updateData();
-//        System.out.println("Stores number: " + engine.getBarcodeMap().getStores().size());
-//            if(!changes.isEmpty()){
-//                System.out.println("\u001b[93mGENERATING CSV FILES\u001b[37m");
-//                CSV generator = new CSV();
-//                generator.createCsvForPrices(new File(PRICESCSV), changes);
-//                System.out.println("\u001b[92mCSV GENERATED\u001b[37m");
-//                Updatedb updatedb = null;
-//                try {
-//                    updatedb = new Updatedb();
-//                } catch (SQLException e) {
-//                    System.err.println("Can't create UpdateDatabase: " + e.getMessage());
-//                }
-//                System.out.println("\u001b[93mUPDATING DATABASE\u001b[37m");
-//                assert updatedb != null;
-//                updatedb.updateAll(engine.getBarcodeMap(), changes, new File(PRICESCSV));
-//
-//            }
-//        }
-//
-//
+        if(downloader.download()){
+            Engine engine = new Engine();
+            engine.load();
+            List<ParsedValues> changes = engine.updateData();
+        System.out.println("Stores number: " + engine.getBarcodeMap().getStores().size());
+            if(!changes.isEmpty()){
+                System.out.println(TextColor.yellow("GENERATING CSV"));
+                CSV generator = new CSV();
+                generator.createCsvForPrices(new File(PRICESCSV), changes);
+                System.out.println(TextColor.green("CSV GENERATED"));
+                Updatedb updatedb = null;
+                try {
+                    updatedb = new Updatedb();
+                } catch (SQLException e) {
+                    System.err.println("Can't create UpdateDatabase: " + e.getMessage());
+                }
+                System.out.println(TextColor.yellow("UPDATING DATABASE"));
+                assert updatedb != null;
+                updatedb.updateAll(engine.getBarcodeMap(), changes, new File(PRICESCSV));
+                printChangesByChain(changes);
+            }
+        }
+
+
 //        Engine.run();
-        downloader.resetDay(2025, 7,19);
-        downloader.download();
+
+    }
+
+    public static void printChangesByChain(List<ParsedValues> changes){
+        Map<Store, Integer> count = new HashMap<>();
+        for(ParsedValues pv : changes){
+            Store chain = pv.getStoreInfo().getChain();
+            if(count.containsKey(chain)){
+                count.put(chain, count.get(chain)+1);
+            }else {
+                count.put(chain, 1);
+            }
+        }
+        for(Store key : count.keySet()){
+            System.out.printf("%s: %d%s", TextColor.blue(key.toString()), count.get(key), NEW_LINE);
+        }
     }
 }
 
