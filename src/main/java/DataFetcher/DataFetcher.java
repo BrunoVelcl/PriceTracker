@@ -1,6 +1,7 @@
 package DataFetcher;
 
 import DataFetcher.entities.Chain;
+import DataFetcher.entities.ChainWebInfo;
 import DataFetcher.entities.DownloadLink;
 import DataFetcher.repositories.implementations.ChainWebInfoRepoImpl;
 import DataFetcher.repositories.implementations.DownloadLinkRepoImpl;
@@ -26,6 +27,11 @@ public class DataFetcher {
 
     public void fetch() {
 
+//        StringBuilder sb = new StringBuilder();
+//        LinkScraper linkScraper = new LinkScraper(sb);
+//        var scrapedLinks = linkScraper.getLinksLidl(ChainWebInfoRepoImpl.chainURLs[Chain.LIDL.getIndex()]);
+//        scrapedLinks.forEach( downloadLink -> System.out.println("Got link: " + downloadLink.getFilename()));
+
         try (ExecutorService executor = Executors.newFixedThreadPool(Chain.values().length)) {
 
             Arrays.stream(Chain.values()).forEach(chain -> {
@@ -46,12 +52,6 @@ public class DataFetcher {
                 });
             });
         }
-
-        Path path = Paths.get(SCRAPED_FILES_DIR, Chain.STUDENAC.toString());
-        DownloadLinkRepoImpl repo = new DownloadLinkRepoImpl(path);
-        repo.loadFromFile();
-        List<DownloadLink> test = repo.getDownloadLinks().stream().toList();
-        downloadFiles(test, Chain.STUDENAC);
     }
 
     public static List<DownloadLink> downloadFiles(List<DownloadLink> newLinks, Chain chain){

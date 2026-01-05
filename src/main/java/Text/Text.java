@@ -23,6 +23,7 @@ public abstract class Text {
         public static final String UNZIPPER_STREAM_CREATION_FAIL = "Unzipper: Failed to create input stream";
         public static final String UNZIPPER_FILE_DELETE_FAIL = "Unzipper: Failed to delete file: %s";
         public static final String DOWNLOAD_FAILED = "Download failed: %s";
+        public static final String SCRAPING_FAIL = "LinkScraper: Failed to scrape: %s";
     }
 
 

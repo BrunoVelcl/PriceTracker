@@ -29,13 +29,14 @@ public class LinkScraper {
         FirefoxOptions options = new FirefoxOptions();
         options.addArguments("--headless");
         this.driver = new FirefoxDriver(options);
-        this.driverWait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        this.driverWait = new WebDriverWait(this.driver, Duration.ofSeconds(10));
         this.sb = stringBuilder;
         this.scrapedLinks = new ArrayList<>();
     }
 
     public List<DownloadLink> getLinks(ChainWebInfo chainWebInfo)throws IllegalArgumentException{
         System.out.printf(Text.Messages.WAITING_FOR_WEBPAGE, chainWebInfo.getBaseUrl());
+
         switch (chainWebInfo.getChain()){
             case LIDL -> {
                 return getLinksLidl(chainWebInfo);
@@ -59,14 +60,20 @@ public class LinkScraper {
     }
 
     private List<DownloadLink> getLinksKaufland(ChainWebInfo chainWebInfo) {
+        List<WebElement> links = null;
+        try {
+            this.driver.get(chainWebInfo.getPriceDataUrl());
+            WebElement cookieButton = this.driver.findElement(By.id("onetrust-accept-btn-handler"));
+            cookieButton.click();
 
-        this.driver.get(chainWebInfo.getPriceDataUrl());
-        WebElement cookieButton = driver.findElement(By.id("onetrust-accept-btn-handler"));
-        cookieButton.click();
+            this.driverWait.until(ExpectedConditions.presenceOfElementLocated(By.partialLinkText(".csv")));
 
-        this.driverWait.until(ExpectedConditions.presenceOfElementLocated(By.partialLinkText(".csv")));
-
-        List<WebElement> links = driver.findElements(By.partialLinkText(".csv"));
+            links = this.driver.findElements(By.partialLinkText(".csv"));
+        } catch (Exception e) {
+            System.err.printf(Text.ErrorMessagess.SCRAPING_FAIL, chainWebInfo.getPriceDataUrl());
+            this.driver.quit();
+            return null;
+        }
 
         for (WebElement link : links) {
             this.sb.setLength(0);
@@ -77,18 +84,25 @@ public class LinkScraper {
                     Objects.requireNonNull(link.getAccessibleName()).substring(1),
                     this.sb.toString()));
         }
+        this.driver.quit();
         System.out.printf(Text.Messages.FINISHED_SCRAPING, chainWebInfo.getBaseUrl());
         return this.scrapedLinks;
     }
 
     private List<DownloadLink> getLinksSpar(ChainWebInfo chainWebInfo){
+        List<WebElement> links = null;
+        try {
+            this.driver.get(chainWebInfo.getPriceDataUrl());
+            this.driver.switchTo().frame(4);
 
-        this.driver.get(chainWebInfo.getPriceDataUrl());
-        driver.switchTo().frame(4);
+            this.driverWait.until(ExpectedConditions.presenceOfElementLocated(By.linkText("Preuzmi")));
 
-        driverWait.until(ExpectedConditions.presenceOfElementLocated(By.linkText("Preuzmi")));
-
-        List<WebElement> links = driver.findElements(By.linkText("Preuzmi"));
+            links = this.driver.findElements(By.linkText("Preuzmi"));
+        } catch (Exception e) {
+            System.err.printf(Text.ErrorMessagess.SCRAPING_FAIL, chainWebInfo.getPriceDataUrl());
+            this.driver.quit();
+            return null;
+        }
 
         for (WebElement link : links) {
             sb.setLength(0);
@@ -100,20 +114,27 @@ public class LinkScraper {
                     sb.toString(),
                     link.getDomAttribute("href")));
         }
+        this.driver.quit();
         System.out.printf(Text.Messages.FINISHED_SCRAPING, chainWebInfo.getBaseUrl());
         return this.scrapedLinks;
     }
 
     public List<DownloadLink> getLinksLidl(ChainWebInfo chainWebInfo) {
+        List<WebElement> links = null;
+        try {
+            this.driver.get(chainWebInfo.getPriceDataUrl());
+            this.driverWait.until(ExpectedConditions.presenceOfElementLocated(By.id("onetrust-accept-btn-handler")));
+            WebElement cookieButton = this.driver.findElement(By.id("onetrust-accept-btn-handler"));
+            cookieButton.click();
 
-        driver.get(chainWebInfo.getPriceDataUrl());
-        driverWait.until(ExpectedConditions.presenceOfElementLocated(By.id("onetrust-accept-btn-handler")));
-        WebElement cookieButton = driver.findElement(By.id("onetrust-accept-btn-handler"));
-        cookieButton.click();
+            this.driverWait.until(ExpectedConditions.presenceOfElementLocated(By.partialLinkText("ovdje")));
+            links = this.driver.findElements(By.partialLinkText("ovdje"));
+        } catch (Exception e) {
+            System.err.printf(Text.ErrorMessagess.SCRAPING_FAIL, chainWebInfo.getPriceDataUrl());
+            this.driver.quit();
+            return null;
+        }
 
-        driverWait.until(ExpectedConditions.presenceOfElementLocated(By.partialLinkText("ovdje")));
-
-        List<WebElement> links = driver.findElements(By.partialLinkText("ovdje"));
         links.removeLast(); //there is something else on the site with the same link text
 
         String linkStr = links.getLast().getDomAttribute("href");
@@ -122,20 +143,29 @@ public class LinkScraper {
         sb.delete(0,sb.lastIndexOf("/")+1);
 
         this.scrapedLinks.add(new DownloadLink(sb.toString(),linkStr));
+
+        this.driver.quit();
         System.out.printf(Text.Messages.FINISHED_SCRAPING, chainWebInfo.getBaseUrl());
         return this.scrapedLinks;
     }
 
     public List<DownloadLink> getLinksPlodine(ChainWebInfo chainWebInfo) {
 
-        driver.get(chainWebInfo.getPriceDataUrl());
-        driverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//button[text()='Prihvaćam']")));
-        WebElement cookieButton = driver.findElement(By.xpath("//button[text()='Prihvaćam']"));
-        cookieButton.click();
+        List<WebElement> links = null;
+        try {
+            this.driver.get(chainWebInfo.getPriceDataUrl());
+            this.driverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//button[text()='Prihvaćam']")));
+            WebElement cookieButton = this.driver.findElement(By.xpath("//button[text()='Prihvaćam']"));
+            cookieButton.click();
 
-        driverWait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("a[href$='.zip']")));
+            this.driverWait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("a[href$='.zip']")));
 
-        List<WebElement> links = driver.findElements(By.cssSelector("a[href$='.zip']"));
+            links = this.driver.findElements(By.cssSelector("a[href$='.zip']"));
+        } catch (Exception e) {
+            System.err.printf(Text.ErrorMessagess.SCRAPING_FAIL, chainWebInfo.getPriceDataUrl());
+            this.driver.quit();
+            return null;
+        }
 
         String linkStr = links.getFirst().getDomAttribute("href");
         sb.setLength(0);
@@ -143,16 +173,24 @@ public class LinkScraper {
         sb.delete(0,sb.lastIndexOf("/")+1);
 
         this.scrapedLinks.add(new DownloadLink(sb.toString(),linkStr));
+
+        this.driver.quit();
         System.out.printf(Text.Messages.FINISHED_SCRAPING, chainWebInfo.getBaseUrl());
         return this.scrapedLinks;
     }
 
     public List<DownloadLink> getLinksStudenac(ChainWebInfo chainWebInfo){
+        List<WebElement> links = null;
+        try {
+            this.driver.get(chainWebInfo.getPriceDataUrl());
+            this.driverWait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("a[href$='.zip']")));
 
-        driver.get(chainWebInfo.getPriceDataUrl());
-        driverWait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("a[href$='.zip']")));
-
-        List<WebElement> links = driver.findElements(By.cssSelector("a[href$='.zip']"));
+            links = this.driver.findElements(By.cssSelector("a[href$='.zip']"));
+        }catch (Exception e){
+            System.err.printf(Text.ErrorMessagess.SCRAPING_FAIL, chainWebInfo.getPriceDataUrl());
+            this.driver.quit();
+            return null;
+        }
 
         String linkStr = links.getFirst().getDomAttribute("href");
         sb.setLength(0);
@@ -160,6 +198,8 @@ public class LinkScraper {
         sb.delete(0,sb.lastIndexOf("/")+1);
 
         this.scrapedLinks.add(new DownloadLink(sb.toString(),linkStr));
+
+        this.driver.quit();
         System.out.printf(Text.Messages.FINISHED_SCRAPING, chainWebInfo.getBaseUrl());
         return this.scrapedLinks;
     }
