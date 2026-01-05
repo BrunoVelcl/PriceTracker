@@ -1,15 +1,8 @@
-import ANSIEscapes.TextColor;
+import Text.TextColor;
 import DataFetcher.DataFetcher;
-import Database.CSV;
-import Database.Updatedb;
-import Engine.Engine;
-import FileFetcher.Downloader;
 import FileFetcher.Store;
 import Parser.ParsedValues;
-import Parser.StoreInfo;
 
-import java.io.File;
-import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;

@@ -1,9 +1,11 @@
 package FileFetcher;
 
+import DataFetcher.Unzipper;
+
 import java.io.*;
 import java.net.URI;
+import java.nio.file.Paths;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.net.http.HttpClient;
@@ -123,7 +125,7 @@ public class Downloader {
                 client.close();
                 if (dumpsterWriter.substring(dumpsterWriter.length() - 4, dumpsterWriter.length()).equals(".zip")){
                     dumpsterWriter.setLength(dumpsterWriter.lastIndexOf("\\")+1);
-                    Unzipper.unzipAllInDir(dumpsterWriter.toString());
+                    Unzipper.unzipAllInDir(Paths.get(dumpsterWriter.toString()));
                 }
                 downloaded.add(info.getName());
 

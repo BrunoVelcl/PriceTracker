@@ -1,4 +1,4 @@
-package ANSIEscapes;
+package Text;
 
 public class TextColor {
     private static final String DEFAULT = "\u001b[97m";

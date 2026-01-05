@@ -1,4 +1,4 @@
-package ANSIEscapes;
+package Text;
 
 import java.io.IOException;
 
@@ -571,15 +571,6 @@ public abstract class ANSI {
         public char getCode() {
             return this.code;
         }
-    }
-
-    public static class Messages{
-        private static final String NEWLINE = System.lineSeparator();
-        public static final String WAITING_FOR_WEBPAGE =
-                ANSI.Color.basicString("Waiting on: ", BasicColor.BLUE) + "%s" + NEWLINE;
-        public static final String FINISHED_SCRAPING =
-                ANSI.Color.basicString("Finished scraping: ", BasicColor.GREEN) + "%s" + NEWLINE;
-
     }
 
 }

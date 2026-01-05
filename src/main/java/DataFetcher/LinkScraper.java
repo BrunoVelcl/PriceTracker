@@ -1,8 +1,9 @@
 package DataFetcher;
 
-import ANSIEscapes.ANSI;
+import Text.ANSI;
 import DataFetcher.entities.ChainWebInfo;
 import DataFetcher.entities.DownloadLink;
+import Text.Text;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -34,7 +35,7 @@ public class LinkScraper {
     }
 
     public List<DownloadLink> getLinks(ChainWebInfo chainWebInfo)throws IllegalArgumentException{
-        System.out.printf(ANSI.Messages.WAITING_FOR_WEBPAGE, chainWebInfo.getBaseUrl());
+        System.out.printf(Text.Messages.WAITING_FOR_WEBPAGE, chainWebInfo.getBaseUrl());
         switch (chainWebInfo.getChain()){
             case LIDL -> {
                 return getLinksLidl(chainWebInfo);
@@ -76,7 +77,7 @@ public class LinkScraper {
                     Objects.requireNonNull(link.getAccessibleName()).substring(1),
                     this.sb.toString()));
         }
-        System.out.printf(ANSI.Messages.FINISHED_SCRAPING, chainWebInfo.getBaseUrl());
+        System.out.printf(Text.Messages.FINISHED_SCRAPING, chainWebInfo.getBaseUrl());
         return this.scrapedLinks;
     }
 
@@ -99,7 +100,7 @@ public class LinkScraper {
                     sb.toString(),
                     link.getDomAttribute("href")));
         }
-        System.out.printf(ANSI.Messages.FINISHED_SCRAPING, chainWebInfo.getBaseUrl());
+        System.out.printf(Text.Messages.FINISHED_SCRAPING, chainWebInfo.getBaseUrl());
         return this.scrapedLinks;
     }
 
@@ -121,7 +122,7 @@ public class LinkScraper {
         sb.delete(0,sb.lastIndexOf("/")+1);
 
         this.scrapedLinks.add(new DownloadLink(sb.toString(),linkStr));
-        System.out.printf(ANSI.Messages.FINISHED_SCRAPING, chainWebInfo.getBaseUrl());
+        System.out.printf(Text.Messages.FINISHED_SCRAPING, chainWebInfo.getBaseUrl());
         return this.scrapedLinks;
     }
 
@@ -142,7 +143,7 @@ public class LinkScraper {
         sb.delete(0,sb.lastIndexOf("/")+1);
 
         this.scrapedLinks.add(new DownloadLink(sb.toString(),linkStr));
-        System.out.printf(ANSI.Messages.FINISHED_SCRAPING, chainWebInfo.getBaseUrl());
+        System.out.printf(Text.Messages.FINISHED_SCRAPING, chainWebInfo.getBaseUrl());
         return this.scrapedLinks;
     }
 
@@ -159,7 +160,7 @@ public class LinkScraper {
         sb.delete(0,sb.lastIndexOf("/")+1);
 
         this.scrapedLinks.add(new DownloadLink(sb.toString(),linkStr));
-        System.out.printf(ANSI.Messages.FINISHED_SCRAPING, chainWebInfo.getBaseUrl());
+        System.out.printf(Text.Messages.FINISHED_SCRAPING, chainWebInfo.getBaseUrl());
         return this.scrapedLinks;
     }
 

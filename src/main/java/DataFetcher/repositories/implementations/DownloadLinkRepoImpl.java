@@ -64,4 +64,9 @@ public class DownloadLinkRepoImpl implements DownloadLinkRepo {
         return newLinks;
     }
 
+    //TODO: This getter is only for inital setup convinience it dosent need to exist, delete it
+
+    public Set<DownloadLink> getDownloadLinks() {
+        return downloadLinks;
+    }
 }
