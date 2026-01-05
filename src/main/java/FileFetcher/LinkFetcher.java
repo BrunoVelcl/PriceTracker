@@ -14,7 +14,7 @@ import java.util.*;
 //**Caller owns the driver, must call .free when done with the object instance*/
 public class LinkFetcher {
 
-    private List<StoreNameLinks> newLinks;
+    private final List<StoreNameLinks> newLinks;
     private final List<StoreNameLinks> existingLinks;
     private final WebDriver driver;
     private final WebDriverWait driverWait;
