@@ -11,12 +11,9 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
 
 
 public class KauflandParser extends Parser{
-
-    private static final Chain KAUFLAND = Chain.KAUFLAND;
 
     private final StringBuilder sb;
 
@@ -41,7 +38,7 @@ public class KauflandParser extends Parser{
     }
 
     @Override
-    protected Store parseStore(File file) {
+    protected Store parseStore(File file, Chain chain) {
         this.sb.setLength(0);
         this.sb.append(file.getName());
 
@@ -58,7 +55,7 @@ public class KauflandParser extends Parser{
             }
             cleanDoubleSpace(this.sb);
         }
-        return (this.sb.isEmpty()) ? null : new Store(sb.toString(), KAUFLAND);
+        return (this.sb.isEmpty()) ? null : new Store(sb.toString(), chain);
 
     }
 
@@ -68,10 +65,10 @@ public class KauflandParser extends Parser{
         try {
             data = Files.readString(filePath);
         } catch (IOException e) {
-            System.out.println(Text.ErrorMessagess.STORE_FILE_OPEN_FAIL);
+            System.out.println(Text.Text.ErrorMessages.STORE_FILE_OPEN_FAIL);
         }
         if(data == null){
-            System.err.println(Text.ErrorMessagess.DATA_FOR_PARSING_NOT_FOUND);
+            System.err.println(Text.Text.ErrorMessages.DATA_FOR_PARSING_NOT_FOUND);
             return;
         }
         this.sb.setLength(0);
@@ -83,7 +80,7 @@ public class KauflandParser extends Parser{
         int start = data.indexOf(newLine) + 1;
         int c = 0;
 
-        ParsedValuesBuilder builder = new ParsedValuesBuilder(store);
+        ParsedValuesBuilder builder = new ParsedValuesBuilder();
 
         for(int i = start; i < data.length(); i ++){
 
@@ -123,7 +120,7 @@ public class KauflandParser extends Parser{
             if(cursor == newLine | i == data.length()-1){ // Second condition includes EOF line
                 c = 0;
                 start = i+1;
-
+                builder.store(store);
                 ParsedValues newParsedValue = builder.consume();
                 if(newParsedValue != null) {
                     parsedValues.add(newParsedValue);

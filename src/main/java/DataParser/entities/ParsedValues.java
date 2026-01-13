@@ -1,4 +1,5 @@
 package DataParser.entities;
+import static Text.Text.Constants.LEVEL_1_DELIMITER;
 
 public class ParsedValues {
 
@@ -74,6 +75,16 @@ public class ParsedValues {
                 ", unit='" + unit + '\'' +
                 ", store=" + store +
                 '}';
+    }
+
+    public String toLine(){
+        return this.barcode + LEVEL_1_DELIMITER +
+                this.productName + LEVEL_1_DELIMITER +
+                this.brand + LEVEL_1_DELIMITER +
+                this.unit_quantity + LEVEL_1_DELIMITER +
+                this.unit + LEVEL_1_DELIMITER +
+                this.store.getId() + LEVEL_1_DELIMITER +
+                this.price;
     }
 
 }

@@ -47,3 +47,6 @@ links.bin
 save.bin
 userData.bin
 dump.txt
+data/
+logs/
+temp/

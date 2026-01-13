@@ -1,7 +1,0 @@
-SELECT price,chains.name, products.name,stores.address, updated 
-FROM prices 
-JOIN stores ON stores.id = prices.store_id 
-JOIN products ON products.id = prices.product_id 
-JOIN chains ON chains.id = stores.chain_id 
-ORDER BY updated DESC LIMIT 10;
-

@@ -37,7 +37,7 @@ public class StoreRepoImpl {
                 line = br.readLine();
             }
         } catch (Exception e) {
-            System.err.println(Text.ErrorMessagess.STORE_FILE_OPEN_FAIL);
+            System.err.println(Text.Text.ErrorMessages.STORE_FILE_OPEN_FAIL);
         }
     }
 
@@ -46,7 +46,7 @@ public class StoreRepoImpl {
         try {
             Files.writeString(FILEPATH, store.toString(), StandardOpenOption.APPEND);
         } catch (IOException e) {
-            System.err.println(Text.ErrorMessagess.STORE_FILE_OPEN_FAIL);
+            System.err.println(Text.Text.ErrorMessages.STORE_FILE_OPEN_FAIL);
         }
     }
 

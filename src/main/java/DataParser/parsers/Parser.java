@@ -1,21 +1,18 @@
 package DataParser.parsers;
 
 import DataFetcher.entities.Chain;
-import DataParser.entities.ParsedValues;
 import DataParser.entities.ParsedValuesContainer;
 import DataParser.entities.Store;
 import DataParser.repositories.StoreRepoImpl;
-import Text.ANSI;
+import Text.Text;
+
 
 import java.io.File;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
 
 public abstract class Parser {
 
     private static final String DATA_DIR = "temp\\";
-
 
     private StoreRepoImpl storeRepo;
 
@@ -25,7 +22,7 @@ public abstract class Parser {
 
     protected abstract void parseData(ParsedValuesContainer parsedValues, Path filePath, Store store);
 
-    protected abstract Store parseStore(File file);
+    protected abstract Store parseStore(File file, Chain chain);
 
 
     private ParsedValuesContainer runParser(Chain chain) {
@@ -35,8 +32,8 @@ public abstract class Parser {
         if (files == null) return parsedValues;
 
         for (File file : files) {
-            long start = System.nanoTime();
-            Store parsedStore = parseStore(file);
+            if(file.getName().equals(chain.toString())) continue;
+            Store parsedStore = parseStore(file, chain);
             int savedStoreIdx = this.storeRepo.getStores().indexOf(parsedStore);
             if (savedStoreIdx == -1) {
                 this.storeRepo.appendStoreToFile(parsedStore);
@@ -46,10 +43,9 @@ public abstract class Parser {
                 Store currentStore = this.storeRepo.getStores().get(savedStoreIdx);
                 parseData(parsedValues, Path.of(file.toURI()), currentStore);
             }
-            long end = System.nanoTime();
-            System.out.println(ANSI.Color.basicString("Parsing time: " + (end - start), ANSI.BasicColor.CYAN));
-            System.out.println(ANSI.Color.basicString("parsedValues size= " + parsedValues.getBrandedProducts().size(), ANSI.BasicColor.CYAN));
-            System.out.println(ANSI.Color.basicString("File parsed: " + file.getName(), ANSI.BasicColor.MAGENTA));
+            if(!file.delete()){
+                System.err.printf(Text.Text.ErrorMessages.FAILED_TO_DELETE_FILE, file);
+            }
         }
         System.out.println("PARSING COMPLETE");
         return parsedValues;

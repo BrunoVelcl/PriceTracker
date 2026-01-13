@@ -13,11 +13,8 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
 
 public class PlodineSparParser extends Parser {
-
-    private static final Chain PLODINE = Chain.PLODINE;
 
     StringBuilder sb;
 
@@ -26,7 +23,7 @@ public class PlodineSparParser extends Parser {
     }
 
     @Override
-    protected Store parseStore(File file) {
+    protected Store parseStore(File file, Chain chain) {
         sb.setLength(0);
         sb.append(file.getName());
 
@@ -43,7 +40,7 @@ public class PlodineSparParser extends Parser {
             }
             cleanDoubleSpace(sb);
         }
-        return (this.sb.isEmpty()) ? null : new Store(sb.toString(), PLODINE);
+        return (this.sb.isEmpty()) ? null : new Store(sb.toString(), chain);
 
     }
 
@@ -53,10 +50,10 @@ public class PlodineSparParser extends Parser {
         try {
             data = Files.readString(filePath, StandardCharsets.ISO_8859_1);
         } catch (IOException e) {
-            System.out.println(Text.ErrorMessagess.STORE_FILE_OPEN_FAIL);
+            System.out.println(Text.Text.ErrorMessages.STORE_FILE_OPEN_FAIL);
         }
         if(data == null){
-            System.err.println(Text.ErrorMessagess.DATA_FOR_PARSING_NOT_FOUND);
+            System.err.println(Text.Text.ErrorMessages.DATA_FOR_PARSING_NOT_FOUND);
             return;
         }
         sb.setLength(0);
@@ -68,7 +65,7 @@ public class PlodineSparParser extends Parser {
         int start = data.indexOf(newLine) + 1;
         int c = 0;
 
-        ParsedValuesBuilder builder = new ParsedValuesBuilder(store);
+        ParsedValuesBuilder builder = new ParsedValuesBuilder();
 
         for (int i = start; i < data.length(); i++) {
 
@@ -117,7 +114,7 @@ public class PlodineSparParser extends Parser {
             if (cursor == newLine | i == data.length() - 1) { // Second condition includes EOF line
                 c = 0;
                 start = i + 1;
-
+                builder.store(store);
                 ParsedValues newParsedValue = builder.consume();
                 if(newParsedValue != null) {
                     parsedValues.add(newParsedValue);

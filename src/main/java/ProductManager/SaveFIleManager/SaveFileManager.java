@@ -1,13 +1,15 @@
 package ProductManager.SaveFIleManager;
 
+import DataFetcher.entities.Chain;
+import DataParser.entities.ParsedValues;
+import DataParser.entities.ParsedValuesBuilder;
+import DataParser.entities.ParsedValuesContainer;
 import DataParser.entities.Store;
 import DataParser.repositories.StoreRepoImpl;
 import ProductManager.Entities.Builders.ProductBuilder;
 import ProductManager.Entities.PricePoint;
 import ProductManager.Entities.Product;
-import ProductManager.ProductManager;
 import Text.Text;
-
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -15,19 +17,20 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+
+import static Text.Text.Constants.LEVEL_1_DELIMITER;
+import static Text.Text.Constants.LEVEL_2_DELIMITER;
+import static Text.Text.Constants.LEVEL_3_DELIMITER;
 
 public class SaveFileManager {
 
-    private static final Path SAVEFILE = Paths.get("data", "save");
-    private static final String LEVEL_1_DELIMITER = ";";
-    private static final String LEVEL_2_DELIMITER = "@";
-    private static final String LEVEL_3_DELIMITER = "~";
+    private static final String BACKUP_SAVE_FILE_NAME = "backupSaveFile";
+    private static final Path BACKUP_SAVE_FILE = Paths.get(Text.Directories.DATA, BACKUP_SAVE_FILE_NAME);
 
-    public static void save(ConcurrentHashMap<Long, Product> productHashMap, StringBuilder sb){
-        try(BufferedWriter bw = Files.newBufferedWriter(SAVEFILE, StandardOpenOption.TRUNCATE_EXISTING)) {
+    public static void saveBackup(ConcurrentHashMap<Long, Product> productHashMap, StringBuilder sb){
+        try(BufferedWriter bw = Files.newBufferedWriter(BACKUP_SAVE_FILE, StandardOpenOption.TRUNCATE_EXISTING)) {
             productHashMap.forEach((key, value) -> {
                 sb.setLength(0);
                 sb.append(value.getBarcode()).append(LEVEL_1_DELIMITER)
@@ -48,18 +51,18 @@ public class SaveFileManager {
                     bw.write(sb.toString());
                     bw.newLine();
                 } catch (IOException e) {
-                    System.err.printf(Text.ErrorMessagess.IO_EXCEPTION_BUFF_WRITER, sb);
+                    System.err.printf(Text.Text.ErrorMessages.IO_EXCEPTION_BUFF_WRITER, sb);
                 }
             });
 
         }catch (Exception e){
-            System.err.println(Text.ErrorMessagess.SAVE_FILE_WRITE_ERROR);
+            System.err.printf(Text.Text.ErrorMessages.SAVE_FILE_WRITE_ERROR, BACKUP_SAVE_FILE_NAME);
         }
     }
 
-    public static ConcurrentHashMap<Long, Product> load(){
+    public static ConcurrentHashMap<Long, Product> loadBackup(){
         ConcurrentHashMap<Long, Product> productsMap = new ConcurrentHashMap<>();
-        try(BufferedReader br = Files.newBufferedReader(SAVEFILE)) {
+        try(BufferedReader br = Files.newBufferedReader(BACKUP_SAVE_FILE)) {
             StoreRepoImpl stores = StoreRepoImpl.load();
             String line = br.readLine();
             ProductBuilder pb = new ProductBuilder();
@@ -87,8 +90,51 @@ public class SaveFileManager {
                 line = br.readLine();
             }
         } catch (IOException e) {
-            System.err.println(Text.ErrorMessagess.SAVE_FILE_READ_ERROR);
+            System.err.printf(Text.Text.ErrorMessages.SAVE_FILE_READ_ERROR, BACKUP_SAVE_FILE_NAME);
         }
         return productsMap;
+    }
+
+    public static void saveParsedValues(ParsedValuesContainer parsedValuesContainer, Chain chain) {
+        Path path = Paths.get(Text.Directories.TEMP, chain.toString(), chain.toString());
+        try(BufferedWriter bw = Files.newBufferedWriter(path, StandardOpenOption.TRUNCATE_EXISTING)){
+            parsedValuesContainer.getBrandedProducts().forEach((k,v) -> {
+                try {
+                    bw.write(k.toLine());
+                    bw.newLine();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+        }catch (Exception e){
+            System.err.printf(Text.Text.ErrorMessages.PARSED_VALUES_WRITE_FAIL, chain);
+        }
+    }
+
+    public static Set<ParsedValues> loadParsedValues(){
+        StoreRepoImpl storeRepo = StoreRepoImpl.load();
+        Set<ParsedValues> parsedValuesList = new HashSet<>();
+        ParsedValuesBuilder pvBuilder = new ParsedValuesBuilder();
+        Arrays.stream(Chain.values()).forEach( chain -> {
+            Path path = Paths.get(Text.Directories.TEMP, chain.name(), chain.name());
+            try(BufferedReader br = Files.newBufferedReader(path)){
+                while (true){
+                String row = br.readLine();
+                if(row == null) break;
+                String[] line = row.split(LEVEL_1_DELIMITER);
+                pvBuilder.barcode(Long.parseLong(line[0]));
+                pvBuilder.productName(line[1]);
+                pvBuilder.brand(line[2]);
+                pvBuilder.unit_quantity(line[3]);
+                pvBuilder.unit(line[4]);
+                pvBuilder.store(storeRepo.getStores().get(Short.parseShort(line[5])));
+                pvBuilder.price(Double.parseDouble(line[6]));
+                parsedValuesList.add(pvBuilder.consume());
+                }
+            } catch (Exception e) {
+                System.err.printf(Text.Text.ErrorMessages.SAVE_FILE_READ_ERROR, path);
+            }
+        });
+        return parsedValuesList;
     }
 }

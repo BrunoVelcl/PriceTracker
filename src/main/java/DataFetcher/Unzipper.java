@@ -28,11 +28,11 @@ public class Unzipper {
                         Files.copy(zis, Paths.get(dir.toString(), entry.getName()), StandardCopyOption.REPLACE_EXISTING);
                     }
                 } catch (Exception e) {
-                    System.err.println(Text.ErrorMessagess.UNZIPPER_STREAM_CREATION_FAIL);
+                    System.err.println(Text.ErrorMessages.UNZIPPER_STREAM_CREATION_FAIL);
                     return;
                 }
                 if(!file.delete()){
-                    System.err.printf( Text.ErrorMessagess.UNZIPPER_FILE_DELETE_FAIL ,filename);
+                    System.err.printf( Text.ErrorMessages.UNZIPPER_FILE_DELETE_FAIL ,filename);
                 }
             }
         }

@@ -8,10 +8,9 @@ public class ParsedValuesBuilder {
     private String brand;
     private String unit_quantity;
     private String unit;
-    private final Store store;
+    private Store store;
 
-    public ParsedValuesBuilder(Store store) {
-        this.store = store;
+    public ParsedValuesBuilder() {
     }
 
     public void barcode(Long barcode) {
@@ -36,6 +35,10 @@ public class ParsedValuesBuilder {
 
     public void unit(String unit) {
         this.unit = unit;
+    }
+
+    public void store(Store store){
+        this.store = store;
     }
 
     private void reset(){

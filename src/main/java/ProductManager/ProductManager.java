@@ -8,10 +8,7 @@ import ProductManager.Entities.Product;
 import ProductManager.SaveFIleManager.SaveFileManager;
 import jdk.jshell.spi.ExecutionControl;
 
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ProductManager {
@@ -35,12 +32,12 @@ public class ProductManager {
 
     //TODO: this updates only products with valid barcode
     public void update(ParsedValuesContainer parsedValues) {
-        this.updateBrandedProducts(parsedValues.getBrandedProducts());
+        this.updateBrandedProducts(parsedValues.getBrandedProducts().keySet());
         //TODO: implement the method below
         //this.updateBrandedProducts(parsedValues.getChainSpecificProducts());
     }
 
-    private void updateBrandedProducts(List<ParsedValues> brandedProducts) {
+    private void updateBrandedProducts(Set<ParsedValues> brandedProducts) {
         for (ParsedValues value : brandedProducts) {
             try {
                 if (!this.productHashMap.containsKey(value.getBarcode())) {
@@ -65,11 +62,17 @@ public class ProductManager {
     }
 
     public void save(StringBuilder sb) {
-        SaveFileManager.save(this.productHashMap, sb);
+        SaveFileManager.saveBackup(this.productHashMap, sb);
     }
 
-    public static ProductManager load() {
-        return new ProductManager(SaveFileManager.load());
+    public static ProductManager loadBackup() {
+        return new ProductManager(SaveFileManager.loadBackup());
+    }
+
+    public static ProductManager loadFromParsedValues(){
+        ProductManager productManager = new ProductManager();
+        productManager.updateBrandedProducts(SaveFileManager.loadParsedValues());
+        return productManager;
     }
 
     //TODO: this method should never return true, after ParsedValues are cleaned correctly it can be deleted.
