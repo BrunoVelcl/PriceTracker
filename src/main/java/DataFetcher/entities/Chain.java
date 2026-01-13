@@ -16,4 +16,13 @@ public enum Chain {
     public byte getIndex() {
         return index;
     }
+
+    public static Chain fromIndex(byte index){
+        for( Chain chain: Chain.values()){
+            if(chain.getIndex() == index){
+                return chain;
+            }
+        }
+        return null;
+    }
 }

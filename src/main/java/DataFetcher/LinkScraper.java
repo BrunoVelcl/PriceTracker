@@ -1,6 +1,5 @@
 package DataFetcher;
 
-import Text.ANSI;
 import DataFetcher.entities.ChainWebInfo;
 import DataFetcher.entities.DownloadLink;
 import Text.Text;
@@ -70,7 +69,6 @@ public class LinkScraper {
 
             links = this.driver.findElements(By.partialLinkText(".csv"));
         } catch (Exception e) {
-            System.err.printf(Text.ErrorMessagess.SCRAPING_FAIL, chainWebInfo.getPriceDataUrl());
             this.driver.quit();
             return null;
         }
@@ -85,7 +83,6 @@ public class LinkScraper {
                     this.sb.toString()));
         }
         this.driver.quit();
-        System.out.printf(Text.Messages.FINISHED_SCRAPING, chainWebInfo.getBaseUrl());
         return this.scrapedLinks;
     }
 
@@ -99,7 +96,6 @@ public class LinkScraper {
 
             links = this.driver.findElements(By.linkText("Preuzmi"));
         } catch (Exception e) {
-            System.err.printf(Text.ErrorMessagess.SCRAPING_FAIL, chainWebInfo.getPriceDataUrl());
             this.driver.quit();
             return null;
         }
@@ -115,7 +111,6 @@ public class LinkScraper {
                     link.getDomAttribute("href")));
         }
         this.driver.quit();
-        System.out.printf(Text.Messages.FINISHED_SCRAPING, chainWebInfo.getBaseUrl());
         return this.scrapedLinks;
     }
 
@@ -130,7 +125,6 @@ public class LinkScraper {
             this.driverWait.until(ExpectedConditions.presenceOfElementLocated(By.partialLinkText("ovdje")));
             links = this.driver.findElements(By.partialLinkText("ovdje"));
         } catch (Exception e) {
-            System.err.printf(Text.ErrorMessagess.SCRAPING_FAIL, chainWebInfo.getPriceDataUrl());
             this.driver.quit();
             return null;
         }
@@ -145,7 +139,6 @@ public class LinkScraper {
         this.scrapedLinks.add(new DownloadLink(sb.toString(),linkStr));
 
         this.driver.quit();
-        System.out.printf(Text.Messages.FINISHED_SCRAPING, chainWebInfo.getBaseUrl());
         return this.scrapedLinks;
     }
 
@@ -162,7 +155,6 @@ public class LinkScraper {
 
             links = this.driver.findElements(By.cssSelector("a[href$='.zip']"));
         } catch (Exception e) {
-            System.err.printf(Text.ErrorMessagess.SCRAPING_FAIL, chainWebInfo.getPriceDataUrl());
             this.driver.quit();
             return null;
         }
@@ -175,7 +167,6 @@ public class LinkScraper {
         this.scrapedLinks.add(new DownloadLink(sb.toString(),linkStr));
 
         this.driver.quit();
-        System.out.printf(Text.Messages.FINISHED_SCRAPING, chainWebInfo.getBaseUrl());
         return this.scrapedLinks;
     }
 
@@ -187,7 +178,6 @@ public class LinkScraper {
 
             links = this.driver.findElements(By.cssSelector("a[href$='.zip']"));
         }catch (Exception e){
-            System.err.printf(Text.ErrorMessagess.SCRAPING_FAIL, chainWebInfo.getPriceDataUrl());
             this.driver.quit();
             return null;
         }
@@ -200,7 +190,6 @@ public class LinkScraper {
         this.scrapedLinks.add(new DownloadLink(sb.toString(),linkStr));
 
         this.driver.quit();
-        System.out.printf(Text.Messages.FINISHED_SCRAPING, chainWebInfo.getBaseUrl());
         return this.scrapedLinks;
     }
 

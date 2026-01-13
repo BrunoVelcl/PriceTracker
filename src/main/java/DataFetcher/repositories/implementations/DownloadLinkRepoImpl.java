@@ -2,6 +2,7 @@ package DataFetcher.repositories.implementations;
 
 import DataFetcher.entities.DownloadLink;
 import DataFetcher.repositories.interfaces.DownloadLinkRepo;
+import Text.Text;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -14,9 +15,7 @@ import java.util.Set;
 
 public class DownloadLinkRepoImpl implements DownloadLinkRepo {
 
-    private static final String DELIMITER = ",";
-
-    private Set<DownloadLink> downloadLinks;
+    private final Set<DownloadLink> downloadLinks;
     private final Path filepath;
 
     public DownloadLinkRepoImpl(Path filepath) {
@@ -29,7 +28,7 @@ public class DownloadLinkRepoImpl implements DownloadLinkRepo {
         try(BufferedReader br = Files.newBufferedReader(this.filepath)) {
             String line = br.readLine();
             while (line != null){
-                String[] data = line.split(DELIMITER);
+                String[] data = line.split(Text.Constants.COMA_DELIMITER);
                 this.downloadLinks.add(new DownloadLink(data[0], data[1]));
                 line = br.readLine();
             }
