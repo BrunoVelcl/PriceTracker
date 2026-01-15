@@ -65,7 +65,12 @@ public class LidlParser extends Parser {
                     } else{
                         builder.barcode(Long.valueOf(record.get(9)));
                     }
-                    builder.price(Double.valueOf(record.get(5)));
+                    //If there is no regular price take te promo price from the next column
+                    if(record.get(5).isEmpty()){
+                        builder.price(Double.valueOf(record.get(6)));
+                    }else {
+                        builder.price(Double.valueOf(record.get(5)));
+                    }
                     ParsedValues newParsedValue = builder.consume();
                     if (newParsedValue != null) {
                         parsedValues.add(newParsedValue);
