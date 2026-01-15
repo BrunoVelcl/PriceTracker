@@ -44,9 +44,9 @@ public abstract class Parser {
                 Store currentStore = this.storeRepo.getStores().get(savedStoreIdx);
                 parseData(parsedValues, Path.of(file.toURI()), currentStore);
             }
-//            if(!file.delete()){
-//                System.err.printf(Text.ErrorMessages.FAILED_TO_DELETE_FILE, file);
-//            }
+            if(!file.delete()){
+                System.err.printf(Text.ErrorMessages.FAILED_TO_DELETE_FILE, file);
+            }
         }
         System.out.println("PARSING COMPLETE");
         return parsedValues;

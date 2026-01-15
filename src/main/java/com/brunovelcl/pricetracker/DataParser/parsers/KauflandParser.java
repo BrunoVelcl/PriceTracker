@@ -5,20 +5,33 @@ import com.brunovelcl.pricetracker.DataParser.entities.ParsedValues;
 import com.brunovelcl.pricetracker.DataParser.entities.ParsedValuesBuilder;
 import com.brunovelcl.pricetracker.DataParser.entities.ParsedValuesContainer;
 import com.brunovelcl.pricetracker.DataParser.entities.Store;
-import com.brunovelcl.pricetracker.Text.CroCharMap;
 import com.brunovelcl.pricetracker.Text.Text;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVRecord;
+
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 
 public class KauflandParser extends Parser{
 
+
+    private final DecimalFormat decimalFormat;
     private final StringBuilder sb;
 
     public KauflandParser() {
+
         this.sb = new StringBuilder();
+        DecimalFormatSymbols dfs = new DecimalFormatSymbols();
+        dfs.setDecimalSeparator(',');
+        DecimalFormat decimalFormat = new DecimalFormat();
+        decimalFormat.setDecimalFormatSymbols(dfs);
+        this.decimalFormat = decimalFormat;
     }
 
     private static void cleanDoubleSpace(StringBuilder sb){
@@ -61,80 +74,35 @@ public class KauflandParser extends Parser{
 
     @Override
     protected void parseData(ParsedValuesContainer parsedValues, Path filePath, Store store) {
-        String data = null;
-        try {
-            data = Files.readString(filePath);
+        CSVFormat kauflandFormat = CSVFormat.DEFAULT
+                .builder()
+                .setDelimiter((char)0x09)
+                .setRecordSeparator((char)0xa)
+                .get();
+        ParsedValuesBuilder builder = new ParsedValuesBuilder();
+        try (BufferedReader br = Files.newBufferedReader(filePath);
+            CSVParser parser = kauflandFormat.parse(br)
+        ){
+            for(CSVRecord record : parser){
+                if(record.getRecordNumber() == 1) continue;
+                try {
+                    builder.productName(record.get(0));
+                    builder.unit_quantity(record.get(3));
+                    builder.unit(record.get(4));
+                    builder.brand(record.get(2));
+                    builder.store(store);
+                    builder.barcode(Long.valueOf(record.get(13)));
+                    builder.price(this.decimalFormat.parse(record.get(5).trim()).doubleValue());
+                    ParsedValues newParsedValue = builder.consume();
+                    if(newParsedValue != null) {
+                        parsedValues.add(newParsedValue);
+                    }
+                } catch (Exception e) {
+                    System.err.printf(Text.ErrorMessages.FAILED_TO_PARSE_LINE, record.toString());
+                }
+            }
         } catch (IOException e) {
             System.out.println(Text.ErrorMessages.STORE_FILE_OPEN_FAIL);
-        }
-        if(data == null){
-            System.err.println(Text.ErrorMessages.DATA_FOR_PARSING_NOT_FOUND);
-            return;
-        }
-        this.sb.setLength(0);
-        CroCharMap croMap = new CroCharMap();
-        boolean quotes = false;
-        int returnPointForCursor = 0;   //used for keeping track of where cursor encountered -> "
-        char newLine = 0x0a;
-        char delimiter = 0x09;
-        int start = data.indexOf(newLine) + 1;
-        int c = 0;
-
-        ParsedValuesBuilder builder = new ParsedValuesBuilder();
-
-        for(int i = start; i < data.length(); i ++){
-
-            char cursor = data.charAt(i);
-            if(cursor == '"'){
-                returnPointForCursor = i;
-                quotes = !quotes;
-            }
-            if(quotes){
-                if(cursor == newLine){
-                    quotes = false;
-                    i = returnPointForCursor;
-                }
-                continue;
-            }
-
-            if(cursor == delimiter) {
-                sb.setLength(0);
-                switch (c) {
-                    case 0 -> builder.productName(croMap.replaceString(sb.append(data, start, i)));
-                    case 3 -> builder.unit_quantity(data.substring(start, i));
-                    case 4 -> builder.unit(data.substring(start, i));
-                    case 2 -> builder.brand(croMap.replaceString(sb.append(data, start, i)));
-                    case 5 -> {
-                        comaToDot(sb.append(data, start, i));
-                        String test = sb.toString();
-                        builder.price((test.isEmpty()) ? null : Double.parseDouble(test));
-                    }
-                    case 13 -> {
-                        String test = data.substring(start, i );
-                        //test block start
-                        try{
-                            Long.parseLong(test);
-                        } catch (Exception e) {
-                            System.err.println("FILE: " + filePath);
-                            System.err.println("Product: " + builder.toString());
-                            e.printStackTrace();
-
-                        }
-                        builder.barcode((test.isEmpty()) ? null : Long.parseLong(test));
-                    }
-                }
-                c++;
-                start = i+1;
-            }
-            if(cursor == newLine | i == data.length()-1){ // Second condition includes EOF line
-                c = 0;
-                start = i+1;
-                builder.store(store);
-                ParsedValues newParsedValue = builder.consume();
-                if(newParsedValue != null) {
-                    parsedValues.add(newParsedValue);
-                }
-            }
         }
     }
 

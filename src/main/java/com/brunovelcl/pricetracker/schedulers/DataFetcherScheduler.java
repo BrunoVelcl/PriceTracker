@@ -31,7 +31,7 @@ public class DataFetcherScheduler {
 
     @Scheduled(fixedDelay = 5,timeUnit = TimeUnit.MINUTES)
     public void update(){
-        if(!isScrapingWindow(LocalTime.now())){
+        if(isScrapingWindow(LocalTime.now())){
             if(this.attempt != 0){
                 this.attempt = 0;
             }

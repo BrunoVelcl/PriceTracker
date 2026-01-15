@@ -48,6 +48,7 @@ public abstract class Text {
         public static final String PARSING_RETURNED_NOTHING = "Parsing error for: %s" + NEWLINE;
         public static final String PARSED_VALUES_WRITE_FAIL = "Failed to write ParsedValues for: %s" + NEWLINE;
         public static final String FAILED_TO_DELETE_FILE = "Failed to delete file: %s" + NEWLINE;
+        public static final String FAILED_TO_PARSE_LINE = "Failed to parse: %s" +NEWLINE;
 
     }
 

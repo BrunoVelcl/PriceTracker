@@ -12,9 +12,9 @@ public class PriceTrackerApplication {
 
 	public static void main(String[] args) {
 
-		var _ = Parser.run(Chain.KAUFLAND);
+		//var _ = Parser.run(Chain.LIDL);
 
-		//SpringApplication.run(PriceTrackerApplication.class, args);
+		SpringApplication.run(PriceTrackerApplication.class, args);
 	}
 
 }
