@@ -20,12 +20,14 @@ public class DataFetcherScheduler {
     private final DataFetcher dataFetcher;
     private final ProductManager pm;
     private final boolean[] scrapedTracker;
+    private final StringBuilder stringBuilder;
     private int attempt;
 
     public DataFetcherScheduler(DataFetcher dataFetcher, ProductManager pm) {
         this.dataFetcher = dataFetcher;
         this.pm = pm;
         this.scrapedTracker = new boolean[Chain.values().length];
+        this.stringBuilder = new StringBuilder();
         this.attempt = 0;
     }
 
@@ -40,8 +42,10 @@ public class DataFetcherScheduler {
 
         if(this.attempt == 0) this.reset();
 
+        //TODO: this is a temp testing version
         if(dataFetcher.fetch(this.scrapedTracker)){
             pm.loadFromParsedValues();
+            pm.save(this.stringBuilder);
         }
 
     }

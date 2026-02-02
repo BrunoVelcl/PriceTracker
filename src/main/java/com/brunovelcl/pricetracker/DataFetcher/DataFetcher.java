@@ -90,8 +90,6 @@ public class DataFetcher {
             } catch (Exception e) {
                 System.err.printf(Text.ErrorMessages.DOWNLOAD_FAILED, downloadLink.getLink());
                 System.err.println(e.getMessage());
-                e.printStackTrace();
-                System.err.println(request.toString());
             }
             downloadedLinks.add(downloadLink);
             if (downloadLink.getFilename().endsWith(Text.Constants.ZIP_EXTENSION)) {

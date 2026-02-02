@@ -13,7 +13,7 @@ import java.nio.file.Path;
 
 public abstract class Parser {
 
-    private static final String DATA_DIR = "temp\\";
+    private static final String DATA_DIR = Text.Directories.TEMP;
 
     private StoreRepoImpl storeRepo;
 
