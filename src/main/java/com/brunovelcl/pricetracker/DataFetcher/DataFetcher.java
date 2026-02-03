@@ -29,6 +29,8 @@ import static com.brunovelcl.pricetracker.Text.Text.Directories.TEMP;
 @Service
 public class DataFetcher {
 
+    private static final long TIMEOUT_WAIT = 2L;
+
     public boolean fetch(boolean[] chains) {
 
         AtomicBoolean updateHappened = new AtomicBoolean(false);
@@ -72,7 +74,9 @@ public class DataFetcher {
             });
             executor.shutdown();
             try {
-                executor.awaitTermination(Long.MAX_VALUE, TimeUnit.HOURS);
+                if(!executor.awaitTermination(TIMEOUT_WAIT, TimeUnit.MINUTES)){
+                    System.err.println(Text.ErrorMessages.DATA_GATHERING_TIMEOUT_REACHED);
+                }
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }

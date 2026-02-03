@@ -28,6 +28,7 @@ public class DownloadLinkRepoImpl implements DownloadLinkRepo {
         try(BufferedReader br = Files.newBufferedReader(this.filepath)) {
             String line = br.readLine();
             while (line != null){
+                if (line.isBlank()) break;
                 String[] data = line.split(Text.Constants.COMA_DELIMITER);
                 this.downloadLinks.add(new DownloadLink(data[0], data[1]));
                 line = br.readLine();
