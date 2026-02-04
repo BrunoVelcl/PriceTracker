@@ -23,14 +23,14 @@ public class PriceTrackerApplication {
 		System.setProperty("javax.net.ssl.trustStore", Paths.get("certs/truststore.jks").toAbsolutePath().toString());
 		System.setProperty("javax.net.ssl.trustStorePassword", "changeit"); //TODO: change and add password to env when deploying
 
-		boolean[] chains = new boolean[Chain.values().length];
-		Arrays.fill(chains, true);
-		chains[Chain.STUDENAC.getIndex()] = false;
-		DataFetcher dataFetcher = new DataFetcher();
-		dataFetcher.fetch(chains);
+//		boolean[] chains = new boolean[Chain.values().length];
+//		Arrays.fill(chains, true);
+//		chains[Chain.STUDENAC.getIndex()] = false;
+//		DataFetcher dataFetcher = new DataFetcher();
+//		dataFetcher.fetch(chains);
 
 
-		//SpringApplication.run(PriceTrackerApplication.class, args);
+		SpringApplication.run(PriceTrackerApplication.class, args);
 	}
 
 }

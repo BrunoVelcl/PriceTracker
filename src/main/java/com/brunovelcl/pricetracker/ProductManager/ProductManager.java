@@ -3,6 +3,9 @@ package com.brunovelcl.pricetracker.ProductManager;
 import com.brunovelcl.pricetracker.DTO.response.ProductNameBarcodeDTO;
 import com.brunovelcl.pricetracker.DataParser.entities.ParsedValues;
 import com.brunovelcl.pricetracker.DataParser.entities.ParsedValuesContainer;
+import com.brunovelcl.pricetracker.DataParser.entities.Store;
+import com.brunovelcl.pricetracker.DataParser.repositories.StoreRepo;
+import com.brunovelcl.pricetracker.DataParser.repositories.StoreRepoImpl;
 import com.brunovelcl.pricetracker.ProductManager.Entities.PricePoint;
 import com.brunovelcl.pricetracker.ProductManager.Entities.Product;
 import com.brunovelcl.pricetracker.ProductManager.SaveFIleManager.SaveFileManager;
@@ -17,10 +20,12 @@ public class ProductManager {
 
     private final ConcurrentHashMap<Long, Product> productHashMap;
     private final ConcurrentHashMap<String, Long> productNameToBarcodeMap;
+    private final StoreRepo storeRepo;
 
     public ProductManager() {
         this.productHashMap = new ConcurrentHashMap<>();
         this.productNameToBarcodeMap = new ConcurrentHashMap<>();
+        this.storeRepo = StoreRepoImpl.load();
     }
 
     public ProductManager(ConcurrentHashMap<Long, Product> productHashMap) {
@@ -29,6 +34,7 @@ public class ProductManager {
         this.productHashMap.forEach((k, v) -> {
             this.productNameToBarcodeMap.put(v.getName(), k);
         });
+        this.storeRepo = StoreRepoImpl.load();
 
     }
 
@@ -73,6 +79,7 @@ public class ProductManager {
 
     public void loadFromParsedValues(){
         this.updateBrandedProducts(SaveFileManager.loadParsedValues());
+        this.storeRepo.loadFromFile();
     }
 
     //TODO: this method should never return true, after ParsedValues are cleaned correctly it can be deleted.
@@ -99,6 +106,10 @@ public class ProductManager {
             }
         });
         return foundMatches;
+    }
+
+    public List<Store> getStores(){
+        return this.storeRepo.getStores();
     }
 
 }

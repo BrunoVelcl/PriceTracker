@@ -29,7 +29,7 @@ import static com.brunovelcl.pricetracker.Text.Text.Directories.TEMP;
 @Service
 public class DataFetcher {
 
-    private static final long TIMEOUT_WAIT = 2L;
+    private static final long TIMEOUT_WAIT = 4L;
 
     public boolean fetch(boolean[] chains) {
 

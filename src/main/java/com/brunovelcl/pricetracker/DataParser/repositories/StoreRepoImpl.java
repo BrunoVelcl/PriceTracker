@@ -3,6 +3,9 @@ package com.brunovelcl.pricetracker.DataParser.repositories;
 import com.brunovelcl.pricetracker.DataFetcher.entities.Chain;
 import com.brunovelcl.pricetracker.DataParser.entities.Store;
 import com.brunovelcl.pricetracker.Text.Text;
+import lombok.Getter;
+import org.springframework.stereotype.Repository;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -14,7 +17,9 @@ import java.util.List;
 
 import static com.brunovelcl.pricetracker.Text.Text.Constants.COMA_DELIMITER;
 
-public class StoreRepoImpl {
+@Repository
+@Getter
+public class StoreRepoImpl implements StoreRepo {
 
     private static final Path FILEPATH = Paths.get("data", "store");
 
@@ -22,10 +27,6 @@ public class StoreRepoImpl {
 
     public StoreRepoImpl() {
         this.stores = new ArrayList<>();
-    }
-
-    public List<Store> getStores() {
-        return stores;
     }
 
     public void loadFromFile() {
