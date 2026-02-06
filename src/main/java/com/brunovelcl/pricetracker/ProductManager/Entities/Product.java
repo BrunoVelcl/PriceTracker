@@ -2,6 +2,7 @@ package com.brunovelcl.pricetracker.ProductManager.Entities;
 
 import com.brunovelcl.pricetracker.DataParser.entities.ParsedValues;
 import com.brunovelcl.pricetracker.DataParser.entities.Store;
+import com.brunovelcl.pricetracker.DataParser.repositories.StoreRepo;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -110,5 +111,14 @@ public class Product {
             }
         }
         return Optional.empty();
+    }
+
+    public Double findPriceByStoreId(Short storeId){
+        for(PricePoint pricePoint : this.prices){
+            for(Store store : pricePoint.getStores()){
+                if(store.getId().equals(storeId)) return pricePoint.getPrice();
+            }
+        }
+        return null;
     }
 }

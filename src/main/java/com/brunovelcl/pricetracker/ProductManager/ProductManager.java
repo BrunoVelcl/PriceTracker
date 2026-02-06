@@ -1,5 +1,7 @@
 package com.brunovelcl.pricetracker.ProductManager;
 
+import com.brunovelcl.pricetracker.DTO.request.PriceQueryDTO;
+import com.brunovelcl.pricetracker.DTO.response.PriceDataDTO;
 import com.brunovelcl.pricetracker.DTO.response.ProductNameBarcodeDTO;
 import com.brunovelcl.pricetracker.DataParser.entities.ParsedValues;
 import com.brunovelcl.pricetracker.DataParser.entities.ParsedValuesContainer;
@@ -23,8 +25,11 @@ public class ProductManager {
     private final StoreRepo storeRepo;
 
     public ProductManager() {
-        this.productHashMap = new ConcurrentHashMap<>();
+        this.productHashMap = SaveFileManager.loadBackup();
         this.productNameToBarcodeMap = new ConcurrentHashMap<>();
+        this.productHashMap.forEach((k, v) -> {
+            this.productNameToBarcodeMap.put(v.getName(), k);
+        });
         this.storeRepo = StoreRepoImpl.load();
     }
 
@@ -110,6 +115,16 @@ public class ProductManager {
 
     public List<Store> getStores(){
         return this.storeRepo.getStores();
+    }
+
+    public List<PriceDataDTO> getPrices(PriceQueryDTO request){
+        List<PriceDataDTO> responseList = new ArrayList<>();
+        request.getProductCodes().forEach( code -> {
+            Product product = this.productHashMap.get(code);
+            request.getStoreCodes().forEach( store ->
+                    responseList.add(new PriceDataDTO(store, code, product.findPriceByStoreId(store))));
+        });
+        return responseList;
     }
 
 }
