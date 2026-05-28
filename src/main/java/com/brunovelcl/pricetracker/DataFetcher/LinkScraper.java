@@ -1,8 +1,9 @@
 package com.brunovelcl.pricetracker.DataFetcher;
 
 import com.brunovelcl.pricetracker.DataFetcher.entities.ChainWebInfo;
-import com.brunovelcl.pricetracker.DataFetcher.entities.DownloadLink;
 import com.brunovelcl.pricetracker.Text.Text;
+import com.brunovelcl.pricetracker.database.entities.ScrapedLink;
+import com.brunovelcl.pricetracker.schedulers.entities.ChainInfo;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -23,7 +24,7 @@ public class LinkScraper {
     private final WebDriver driver;
     private final WebDriverWait driverWait;
     private final StringBuilder sb;
-    private final  List<DownloadLink> scrapedLinks;
+    private final List<ScrapedLink> scrapedLinks;
 
 
     public LinkScraper(StringBuilder stringBuilder) {
@@ -35,24 +36,24 @@ public class LinkScraper {
         this.scrapedLinks = new ArrayList<>();
     }
 
-    public List<DownloadLink> getLinks(ChainWebInfo chainWebInfo)throws IllegalArgumentException{
-        System.out.printf(Text.Messages.WAITING_FOR_WEBPAGE, chainWebInfo.getBaseUrl());
+    public List<ScrapedLink> getLinks(ChainInfo chainInfo)throws IllegalArgumentException{
+        System.out.printf(Text.Messages.WAITING_FOR_WEBPAGE, chainInfo.getName());
 
-        switch (chainWebInfo.getChain()){
-            case LIDL -> {
-                return getLinksLidl(chainWebInfo);
+        switch (chainInfo.getName()){
+            case "LIDL" -> {
+                return getLinksLidl(chainInfo);
             }
-            case KAUFLAND -> {
-                return getLinksKaufland(chainWebInfo);
+            case "KAUFLAND" -> {
+                return getLinksKaufland(chainInfo);
             }
-            case SPAR -> {
-                return getLinksSpar(chainWebInfo);
+            case "SPAR" -> {
+                return getLinksSpar(chainInfo);
             }
-            case STUDENAC -> {
-                return getLinksStudenac(chainWebInfo);
+            case "STUDENAC" -> {
+                return getLinksStudenac(chainInfo);
             }
-            case PLODINE -> {
-                return getLinksPlodine(chainWebInfo);
+            case "PLODINE" -> {
+                return getLinksPlodine(chainInfo);
             }
             default -> {
                 throw new IllegalArgumentException("Unsuported store encountered.");
@@ -60,10 +61,10 @@ public class LinkScraper {
         }
     }
 
-    private List<DownloadLink> getLinksKaufland(ChainWebInfo chainWebInfo) {
+    private List<ScrapedLink> getLinksKaufland(ChainInfo chainInfo) {
         List<WebElement> links = null;
         try {
-            this.driver.get(chainWebInfo.getPriceDataUrl());
+            this.driver.get(chainInfo.getDownloadLink());
             WebElement cookieButton = this.driver.findElement(By.id("onetrust-accept-btn-handler"));
             cookieButton.click();
 
@@ -77,10 +78,10 @@ public class LinkScraper {
 
         for (WebElement link : links) {
             this.sb.setLength(0);
-            this.sb.append(chainWebInfo.getBaseUrl()).append(link.getDomAttribute("href"));
+            this.sb.append(chainInfo.getBaseLink()).append(link.getDomAttribute("href"));
             cleanURL(this.sb);
 
-            this.scrapedLinks.add(new DownloadLink(
+            this.scrapedLinks.add(new ScrapedLink(
                     Objects.requireNonNull(link.getAccessibleName()).substring(1),
                     this.sb.toString()));
         }
@@ -88,10 +89,10 @@ public class LinkScraper {
         return this.scrapedLinks;
     }
 
-    private List<DownloadLink> getLinksSpar(ChainWebInfo chainWebInfo){
+    private List<ScrapedLink> getLinksSpar(ChainInfo chainInfo){
         List<WebElement> links = null;
         try {
-            this.driver.get(chainWebInfo.getPriceDataUrl());
+            this.driver.get(chainInfo.getDownloadLink());
             this.driver.switchTo().frame(4);
 
             this.driverWait.until(ExpectedConditions.presenceOfElementLocated(By.linkText("Preuzmi")));
@@ -108,7 +109,7 @@ public class LinkScraper {
             sb.delete(0,sb.lastIndexOf("/")+1);
             cleanURL(sb);
 
-            this.scrapedLinks.add(new DownloadLink(
+            this.scrapedLinks.add(new ScrapedLink(
                     sb.toString(),
                     link.getDomAttribute("href")));
         }
@@ -116,10 +117,10 @@ public class LinkScraper {
         return this.scrapedLinks;
     }
 
-    public List<DownloadLink> getLinksLidl(ChainWebInfo chainWebInfo) {
+    public List<ScrapedLink> getLinksLidl(ChainInfo chainInfo) {
         List<WebElement> links = null;
         try {
-            this.driver.get(chainWebInfo.getPriceDataUrl());
+            this.driver.get(chainInfo.getDownloadLink());
             this.driverWait.until(ExpectedConditions.presenceOfElementLocated(By.id("onetrust-accept-btn-handler")));
             WebElement cookieButton = this.driver.findElement(By.id("onetrust-accept-btn-handler"));
             cookieButton.click();
@@ -138,17 +139,17 @@ public class LinkScraper {
         sb.append(linkStr);
         sb.delete(0,sb.lastIndexOf("/")+1);
 
-        this.scrapedLinks.add(new DownloadLink(sb.toString(),linkStr));
+        this.scrapedLinks.add(new ScrapedLink(sb.toString(),linkStr));
 
         this.driver.quit();
         return this.scrapedLinks;
     }
 
-    public List<DownloadLink> getLinksPlodine(ChainWebInfo chainWebInfo) {
+    public List<ScrapedLink> getLinksPlodine(ChainInfo chainInfo) {
 
         List<WebElement> links = null;
         try {
-            this.driver.get(chainWebInfo.getPriceDataUrl());
+            this.driver.get(chainInfo.getDownloadLink());
             this.driverWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//button[text()='Prihvaćam']")));
             WebElement cookieButton = this.driver.findElement(By.xpath("//button[text()='Prihvaćam']"));
             cookieButton.click();
@@ -166,16 +167,16 @@ public class LinkScraper {
         sb.append(linkStr);
         sb.delete(0,sb.lastIndexOf("/")+1);
 
-        this.scrapedLinks.add(new DownloadLink(sb.toString(),linkStr));
+        this.scrapedLinks.add(new ScrapedLink(sb.toString(),linkStr));
 
         this.driver.quit();
         return this.scrapedLinks;
     }
 
-    public List<DownloadLink> getLinksStudenac(ChainWebInfo chainWebInfo){
+    public List<ScrapedLink> getLinksStudenac(ChainInfo chainInfo){
         List<WebElement> links = null;
         try {
-            this.driver.get(chainWebInfo.getPriceDataUrl());
+            this.driver.get(chainInfo.getDownloadLink());
             this.driverWait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("a[href$='.zip']")));
 
             links = this.driver.findElements(By.cssSelector("a[href$='.zip']"));
@@ -189,7 +190,7 @@ public class LinkScraper {
         sb.append(linkStr);
         sb.delete(0,sb.lastIndexOf("/")+1);
 
-        this.scrapedLinks.add(new DownloadLink(sb.toString(),linkStr));
+        this.scrapedLinks.add(new ScrapedLink(sb.toString(),linkStr));
 
         this.driver.quit();
         return this.scrapedLinks;

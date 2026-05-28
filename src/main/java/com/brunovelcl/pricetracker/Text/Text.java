@@ -25,6 +25,10 @@ public abstract class Text {
                         "%s // %s // %s // %s // %s"  + NEWLINE +
                         "%s // %s // %s // %s // %s"  + NEWLINE +
                         ANSI.Color.basicString("*****************************", ANSI.BasicColor.YELLOW) + NEWLINE;
+        public static final String INIT_CHAIN_TABLE = ANSI.Color.basicString(
+                "Chain Table empty, attempting to populate", ANSI.BasicColor.YELLOW) + NEWLINE;
+        public static final String INIT_CHAIN_TABLE_OK = ANSI.Color.basicString(
+                "Chain Table populated", ANSI.BasicColor.GREEN) + NEWLINE;
     }
 
     public static class Constants{
@@ -50,7 +54,8 @@ public abstract class Text {
         public static final String FAILED_TO_DELETE_FILE = "Failed to delete file: %s" + NEWLINE;
         public static final String FAILED_TO_PARSE_LINE = "Failed to parse: %s" + NEWLINE;
         public static final String DATA_GATHERING_TIMEOUT_REACHED = "Timeout reached for DataFetcher. Check threads." + NEWLINE;
-
+        public static final String WRITING_CHAIN_TABLE_FAILED = "Failed to initialize chains table: %s" + NEWLINE;
+        public static final String SCRAPED_LINK_PERSIST_FAILED = "Failed to persist found link: %s" + NEWLINE;
     }
 
     public static class Directories{

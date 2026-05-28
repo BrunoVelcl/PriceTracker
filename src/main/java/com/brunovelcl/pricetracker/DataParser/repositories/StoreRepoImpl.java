@@ -34,7 +34,7 @@ public class StoreRepoImpl implements StoreRepo {
             String line = br.readLine();
             while (line != null){
                 String[] data = line.split(COMA_DELIMITER);
-                this.stores.add(new Store(Short.parseShort(data[0]), data[1], Chain.fromIndex(Byte.parseByte(data[2]))));
+                this.stores.add(new Store(Short.parseShort(data[0]), data[1], "this shouldnt exist"));
                 line = br.readLine();
             }
         } catch (Exception e) {

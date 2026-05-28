@@ -51,7 +51,7 @@ public class KauflandParser extends Parser{
     }
 
     @Override
-    protected Store parseStore(File file, Chain chain) {
+    protected Store parseStore(File file, String chain) {
         this.sb.setLength(0);
         this.sb.append(file.getName());
 

@@ -23,17 +23,17 @@ public abstract class Parser {
 
     protected abstract void parseData(ParsedValuesContainer parsedValues, Path filePath, Store store);
 
-    protected abstract Store parseStore(File file, Chain chain);
+    protected abstract Store parseStore(File file, String chain);
 
 
-    private ParsedValuesContainer runParser(Chain chain) {
+    private ParsedValuesContainer runParser(String chain) {
         ParsedValuesContainer parsedValues = new ParsedValuesContainer();
-        File dir = new File(DATA_DIR, chain.toString());
+        File dir = new File(DATA_DIR, chain);
         File[] files = dir.listFiles();
         if (files == null) return parsedValues;
 
         for (File file : files) {
-            if(file.getName().equals(chain.toString())) continue;
+            if(file.getName().equals(chain)) continue;
             Store parsedStore = parseStore(file, chain);
             int savedStoreIdx = this.storeRepo.getStores().indexOf(parsedStore);
             if (savedStoreIdx == -1) {
@@ -52,13 +52,13 @@ public abstract class Parser {
         return parsedValues;
     }
 
-    public static ParsedValuesContainer run(Chain chain) {
+    public static ParsedValuesContainer run(String chain) {
         Parser parser = null;
         switch (chain) {
-            case LIDL -> parser = new LidlParser();
-            case KAUFLAND -> parser = new KauflandParser();
-            case PLODINE, SPAR -> parser = new PlodineSparParser();
-            case STUDENAC -> {
+            case "LIDL" -> parser = new LidlParser();
+            case "KAUFLAND" -> parser = new KauflandParser();
+            case "PLODINE, SPAR" -> parser = new PlodineSparParser();
+            case "STUDENAC" -> {
                 System.err.println("studenacParser not implemented");
                 return null;
             }

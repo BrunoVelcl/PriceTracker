@@ -23,7 +23,7 @@ public class PlodineSparParser extends Parser {
     }
 
     @Override
-    protected Store parseStore(File file, Chain chain) {
+    protected Store parseStore(File file, String chain) {
         sb.setLength(0);
         sb.append(file.getName());
 

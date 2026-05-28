@@ -8,9 +8,15 @@ import com.brunovelcl.pricetracker.ProductManager.SaveFIleManager.SaveFileManage
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.web.bind.annotation.CrossOrigin;
 
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 import java.lang.reflect.Array;
 import java.nio.file.Paths;
+import java.security.cert.X509Certificate;
 import java.util.Arrays;
 
 @SpringBootApplication
@@ -20,8 +26,8 @@ public class PriceTrackerApplication {
 	public static void main(String[] args) {
 
 		//Trust store needed for some chains
-		System.setProperty("javax.net.ssl.trustStore", Paths.get("certs/truststore.jks").toAbsolutePath().toString());
-		System.setProperty("javax.net.ssl.trustStorePassword", "changeit"); //TODO: change and add password to env when deploying
+		//System.setProperty("javax.net.ssl.trustStore", Paths.get("certs/truststore.jks").toAbsolutePath().toString());
+		//System.setProperty("javax.net.ssl.trustStorePassword", "changeit"); //TODO: change and add password to env when deploying
 
 //		boolean[] chains = new boolean[Chain.values().length];
 //		Arrays.fill(chains, true);
@@ -34,3 +40,5 @@ public class PriceTrackerApplication {
 	}
 
 }
+
+

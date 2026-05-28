@@ -3,6 +3,8 @@ package com.brunovelcl.pricetracker.DataParser.entities;
 
 import com.brunovelcl.pricetracker.DataFetcher.entities.Chain;
 
+import java.util.Objects;
+
 import static com.brunovelcl.pricetracker.Text.Text.Constants.NEWLINE;
 import static com.brunovelcl.pricetracker.Text.Text.Constants.COMA_DELIMITER;
 
@@ -10,15 +12,15 @@ public class Store {
 
     private Short id;
     private final String address;
-    private final Chain chain;
+    private final String chain;
 
-    public Store(short id, String address, Chain chain) {
+    public Store(short id, String address, String chain) {
         this.id = id;
         this.address = address;
         this.chain = chain;
     }
 
-    public Store(String address, Chain chain) {
+    public Store(String address, String chain) {
         this.address = address;
         this.chain = chain;
     }
@@ -35,7 +37,7 @@ public class Store {
         return address;
     }
 
-    public Chain getChain() {
+    public String getChain() {
         return chain;
     }
 
@@ -44,7 +46,7 @@ public class Store {
         if (o == null || getClass() != o.getClass()) return false;
 
         Store store = (Store) o;
-        return address.equals(store.address) && chain == store.chain;
+        return address.equals(store.address) && Objects.equals(chain, store.chain);
     }
 
     @Override
@@ -56,6 +58,6 @@ public class Store {
 
     @Override
     public String toString(){
-        return this.id + COMA_DELIMITER + this.address + COMA_DELIMITER + this.chain.getIndex() + NEWLINE;
+        return this.id + COMA_DELIMITER + this.address + COMA_DELIMITER + this.chain + NEWLINE;
     }
 }

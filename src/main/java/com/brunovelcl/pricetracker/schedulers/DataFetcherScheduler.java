@@ -3,6 +3,8 @@ package com.brunovelcl.pricetracker.schedulers;
 import com.brunovelcl.pricetracker.DataFetcher.DataFetcher;
 import com.brunovelcl.pricetracker.DataFetcher.entities.Chain;
 import com.brunovelcl.pricetracker.ProductManager.ProductManager;
+import com.brunovelcl.pricetracker.database.services.interfaces.ChainsService;
+import com.brunovelcl.pricetracker.schedulers.entities.ChainInfo;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -19,21 +21,23 @@ public class DataFetcherScheduler {
 
     private final DataFetcher dataFetcher;
     private final ProductManager pm;
-    private final boolean[] scrapedTracker;
     private final StringBuilder stringBuilder;
+    private final ChainsService chainsService;
+    private final List<ChainInfo> chainInfoList;
     private int attempt;
 
-    public DataFetcherScheduler(DataFetcher dataFetcher, ProductManager pm) {
+    public DataFetcherScheduler(DataFetcher dataFetcher, ProductManager pm, ChainsService chainsService) {
         this.dataFetcher = dataFetcher;
         this.pm = pm;
-        this.scrapedTracker = new boolean[Chain.values().length];
         this.stringBuilder = new StringBuilder();
+        this.chainsService = chainsService;
+        this.chainInfoList = ChainInfo.mapFromChainList(chainsService.getAllChains());
         this.attempt = 0;
     }
 
     @Scheduled(fixedDelay = 5,timeUnit = TimeUnit.MINUTES)
     public void update(){
-        if(isScrapingWindow(LocalTime.now())){
+        if(!isScrapingWindow(LocalTime.now())){
             if(this.attempt != 0){
                 this.attempt = 0;
             }
@@ -43,7 +47,7 @@ public class DataFetcherScheduler {
         if(this.attempt == 0) this.reset();
 
         //TODO: this is a temp testing version
-        if(dataFetcher.fetch(this.scrapedTracker)){
+        if(dataFetcher.fetch(this.chainInfoList)){
             pm.loadFromParsedValues();
             pm.save(this.stringBuilder);
         }
@@ -55,7 +59,7 @@ public class DataFetcherScheduler {
     }
 
     private void reset() {
-        Arrays.fill(this.scrapedTracker, false);
+        this.chainInfoList.forEach(chainInfo -> {chainInfo.setUpdatedToday(false);});
         this.attempt = 1;
     }
 

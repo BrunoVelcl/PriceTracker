@@ -8,6 +8,9 @@ import com.brunovelcl.pricetracker.DataParser.entities.ParsedValuesContainer;
 import com.brunovelcl.pricetracker.DataParser.parsers.Parser;
 import com.brunovelcl.pricetracker.ProductManager.SaveFIleManager.SaveFileManager;
 import com.brunovelcl.pricetracker.Text.Text;
+import com.brunovelcl.pricetracker.database.entities.ScrapedLink;
+import com.brunovelcl.pricetracker.database.services.interfaces.ScrapedLinksService;
+import com.brunovelcl.pricetracker.schedulers.entities.ChainInfo;
 import org.springframework.stereotype.Service;
 
 import java.net.URI;
@@ -31,45 +34,57 @@ public class DataFetcher {
 
     private static final long TIMEOUT_WAIT = 4L;
 
-    public boolean fetch(boolean[] chains) {
+    private final ScrapedLinksService sls;
+
+    public DataFetcher(ScrapedLinksService sls) {
+        this.sls = sls;
+    }
+
+    public boolean fetch(List<ChainInfo> chainInfoList) {
 
         AtomicBoolean updateHappened = new AtomicBoolean(false);
 
         try (ExecutorService executor = Executors.newFixedThreadPool(Chain.values().length)) {
 
-            Arrays.stream(Chain.values()).forEach(chain -> {
-                if (chains[chain.getIndex()]) return;
+            chainInfoList.forEach(chain -> {
+                if (chain.isUpdatedToday()) return;
                 executor.submit(() -> {
                     StringBuilder sb = new StringBuilder();
                     LinkScraper linkScraper = new LinkScraper(sb);
-                    List<DownloadLink> scrapedLinks = linkScraper.getLinks(ChainWebInfoRepoImpl.chainURLs[chain.getIndex()]);
+                    List<ScrapedLink> scrapedLinks = linkScraper.getLinks(chain);
                     if (scrapedLinks == null) {
-                        System.out.printf(Text.Messages.SCRAPING_FAILED, chain);
+                        System.out.printf(Text.Messages.SCRAPING_FAILED, chain.getName());
                         return;
                     }
 
-                    Path path = Path.of(Text.Directories.LOGS + chain.toString());
-                    DownloadLinkRepoImpl linkRepo = new DownloadLinkRepoImpl(path);
-                    linkRepo.loadFromFile();
+//                    Path path = Path.of(Text.Directories.LOGS + chain.getName());
+//                    DownloadLinkRepoImpl linkRepo = new DownloadLinkRepoImpl(path);
+//                    linkRepo.loadFromFile();
+//
+//                    List<DownloadLink> newLinks = linkRepo.linkSorter(scrapedLinks);
 
-                    List<DownloadLink> newLinks = linkRepo.linkSorter(scrapedLinks);
+
+                    scrapedLinks.forEach(sls::addNew);
+                    System.out.printf(Text.Messages.FINISHED_SCRAPING, chain);
+                    List<ScrapedLink> newLinks = sls.findByProcessedFalse();
                     if (newLinks.isEmpty()) {
                         System.out.printf(Text.Messages.NO_NEW_DATA, chain);
                         return;
                     }
-                    System.out.printf(Text.Messages.FINISHED_SCRAPING, chain);
-                    List<DownloadLink> downloadedLinks = downloadFiles(newLinks, chain);
-                    linkRepo.appendToFile(downloadedLinks);
 
-                    ParsedValuesContainer parsedValues = Parser.run(chain);
+                    List<ScrapedLink> downloadedLinks = downloadFiles(newLinks, chain);
+                    downloadedLinks.forEach(sls::processedSuccessfully);
+//                    linkRepo.appendToFile(downloadedLinks);
+
+                    ParsedValuesContainer parsedValues = Parser.run(chain.getName());
                     if (parsedValues == null || parsedValues.isEmpty()) {
                         System.err.printf(Text.ErrorMessages.PARSING_RETURNED_NOTHING, chain);
                         return;
                     }
-                    SaveFileManager.saveParsedValues(parsedValues, chain);
-                    chains[chain.getIndex()] = true;
+//                    SaveFileManager.saveParsedValues(parsedValues, chain);
+                    chain.setUpdatedToday(true);
                     updateHappened.set(true);
-                    System.out.printf(Text.Messages.COMPLETED, chain);
+                    System.out.printf(Text.Messages.COMPLETED, chain.getName());
                 });
             });
             executor.shutdown();
@@ -84,27 +99,27 @@ public class DataFetcher {
         return updateHappened.get();
     }
 
-    public static List<DownloadLink> downloadFiles(List<DownloadLink> newLinks, Chain chain) {
-        List<DownloadLink> downloadedLinks = new ArrayList<>();
+    public static List<ScrapedLink> downloadFiles(List<ScrapedLink> newLinks, ChainInfo chainInfo) {
+        List<ScrapedLink> scrapedLinks = new ArrayList<>();
         HttpClient client = HttpClient.newHttpClient();
-        newLinks.forEach(downloadLink -> {
-            HttpRequest request = HttpRequest.newBuilder().uri(URI.create(downloadLink.getLink())).build();
+        newLinks.forEach(scrapedLink -> {
+            HttpRequest request = HttpRequest.newBuilder().uri(URI.create(scrapedLink.getLink())).build();
             try {
-                client.send(request, HttpResponse.BodyHandlers.ofFile(Paths.get(TEMP, chain.toString(), downloadLink.getFilename())));
+                client.send(request, HttpResponse.BodyHandlers.ofFile(Paths.get(TEMP, chainInfo.getName(), scrapedLink.getFilename())));
             } catch (Exception e) {
-                System.err.printf(Text.ErrorMessages.DOWNLOAD_FAILED, downloadLink.getLink());
+                System.err.printf(Text.ErrorMessages.DOWNLOAD_FAILED, scrapedLink.getLink());
                 System.err.println(e.getMessage());
             }
-            downloadedLinks.add(downloadLink);
-            if (downloadLink.getFilename().endsWith(Text.Constants.ZIP_EXTENSION)) {
-                Path path = Paths.get(TEMP, chain.toString());
+            scrapedLinks.add(scrapedLink);
+            if (scrapedLink.getFilename().endsWith(Text.Constants.ZIP_EXTENSION)) {
+                Path path = Paths.get(TEMP, chainInfo.getName());
                 Unzipper.unzipAllInDir(path);
             }
         });
         client.close();
-        System.out.printf(Text.Messages.DOWNLOAD_COMPLETE, chain.toString());
+        System.out.printf(Text.Messages.DOWNLOAD_COMPLETE, chainInfo.getName());
 
-        return downloadedLinks;
+        return scrapedLinks;
     }
 
 }
