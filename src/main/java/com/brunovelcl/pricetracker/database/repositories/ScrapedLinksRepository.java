@@ -11,19 +11,19 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface ScraoedLinksRepository extends JpaRepository<ScrapedLink, Long> {
+public interface ScrapedLinksRepository extends JpaRepository<ScrapedLink, Long> {
 
     @Modifying
     @Transactional
     @Query(
             value = """
-                    INSERT INTO scrapedLinks (link, filename)
-                    VALUES(:link, :filename)
+                    INSERT INTO scraped_links (link, filename, processed, chain_id)
+                    VALUES(:link, :filename, false, :chain_id)
                     ON CONFLICT DO  NOTHING
                     """,
             nativeQuery = true
     )
-    void insertIgnoreDuplicate(@Param("link") String link, @Param("filename") String filename);
+    void insertIgnoreDuplicate(@Param("link") String link, @Param("filename") String filename, @Param("chain_id") Integer chainId);
 
     List<ScrapedLink> findByProcessedFalse();
 
@@ -31,7 +31,7 @@ public interface ScraoedLinksRepository extends JpaRepository<ScrapedLink, Long>
     @Transactional
     @Query(
             value = """
-                    UPDATE scrapedLinks
+                    UPDATE scraped_links
                     SET processed=true
                     WHERE id = :id
                     """,

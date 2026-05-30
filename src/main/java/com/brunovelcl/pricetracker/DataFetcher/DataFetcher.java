@@ -53,16 +53,9 @@ public class DataFetcher {
                     LinkScraper linkScraper = new LinkScraper(sb);
                     List<ScrapedLink> scrapedLinks = linkScraper.getLinks(chain);
                     if (scrapedLinks == null) {
-                        System.out.printf(Text.Messages.SCRAPING_FAILED, chain.getName());
+                        System.out.printf(Text.Messages.SCRAPING_FAILED, chain.getChain().getName());
                         return;
                     }
-
-//                    Path path = Path.of(Text.Directories.LOGS + chain.getName());
-//                    DownloadLinkRepoImpl linkRepo = new DownloadLinkRepoImpl(path);
-//                    linkRepo.loadFromFile();
-//
-//                    List<DownloadLink> newLinks = linkRepo.linkSorter(scrapedLinks);
-
 
                     scrapedLinks.forEach(sls::addNew);
                     System.out.printf(Text.Messages.FINISHED_SCRAPING, chain);
@@ -74,17 +67,19 @@ public class DataFetcher {
 
                     List<ScrapedLink> downloadedLinks = downloadFiles(newLinks, chain);
                     downloadedLinks.forEach(sls::processedSuccessfully);
-//                    linkRepo.appendToFile(downloadedLinks);
 
-                    ParsedValuesContainer parsedValues = Parser.run(chain.getName());
-                    if (parsedValues == null || parsedValues.isEmpty()) {
-                        System.err.printf(Text.ErrorMessages.PARSING_RETURNED_NOTHING, chain);
-                        return;
-                    }
+
+//                    ParsedValuesContainer parsedValues = Parser.run(chain.getName());
+//                    if (parsedValues == null || parsedValues.isEmpty()) {
+//                        System.err.printf(Text.ErrorMessages.PARSING_RETURNED_NOTHING, chain);
+//                        return;
+//                    }
+
+
 //                    SaveFileManager.saveParsedValues(parsedValues, chain);
                     chain.setUpdatedToday(true);
                     updateHappened.set(true);
-                    System.out.printf(Text.Messages.COMPLETED, chain.getName());
+                    System.out.printf(Text.Messages.COMPLETED, chain.getChain().getName());
                 });
             });
             executor.shutdown();
@@ -105,19 +100,19 @@ public class DataFetcher {
         newLinks.forEach(scrapedLink -> {
             HttpRequest request = HttpRequest.newBuilder().uri(URI.create(scrapedLink.getLink())).build();
             try {
-                client.send(request, HttpResponse.BodyHandlers.ofFile(Paths.get(TEMP, chainInfo.getName(), scrapedLink.getFilename())));
+                client.send(request, HttpResponse.BodyHandlers.ofFile(Paths.get(TEMP, chainInfo.getChain().getName(), scrapedLink.getFilename())));
             } catch (Exception e) {
                 System.err.printf(Text.ErrorMessages.DOWNLOAD_FAILED, scrapedLink.getLink());
                 System.err.println(e.getMessage());
             }
             scrapedLinks.add(scrapedLink);
             if (scrapedLink.getFilename().endsWith(Text.Constants.ZIP_EXTENSION)) {
-                Path path = Paths.get(TEMP, chainInfo.getName());
+                Path path = Paths.get(TEMP, chainInfo.getChain().getName());
                 Unzipper.unzipAllInDir(path);
             }
         });
         client.close();
-        System.out.printf(Text.Messages.DOWNLOAD_COMPLETE, chainInfo.getName());
+        System.out.printf(Text.Messages.DOWNLOAD_COMPLETE, chainInfo.getChain().getName());
 
         return scrapedLinks;
     }

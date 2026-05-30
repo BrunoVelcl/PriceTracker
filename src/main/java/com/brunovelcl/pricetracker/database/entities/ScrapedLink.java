@@ -10,7 +10,7 @@ import java.time.Instant;
 @NoArgsConstructor
 @Entity
 @Data
-@Table(name = "scrapedLinks")
+@Table(name = "scraped_links")
 public class ScrapedLink {
 
     @Id
@@ -24,14 +24,20 @@ public class ScrapedLink {
     private String filename;
 
     @Column(nullable = false, updatable = false)
-    @CreationTimestamp
     private Instant found;
 
     @Column(nullable = false)
-    private Boolean processed = false;
+    private Boolean processed;
 
-    public ScrapedLink(String link, String filename) {
+    @ManyToOne
+    @JoinColumn(name = "chain_id", nullable = false)
+    private Chain chain;
+
+    public ScrapedLink(String link, String filename, Chain chain) {
         this.link = link;
         this.filename = filename;
+        this.processed = false;
+        this.chain = chain;
     }
+
 }

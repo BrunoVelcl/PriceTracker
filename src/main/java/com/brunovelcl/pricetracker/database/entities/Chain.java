@@ -22,7 +22,7 @@ public class Chain {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false, unique = true, updatable = false)
     private String name;
 
     @Column(nullable = false)
@@ -33,4 +33,7 @@ public class Chain {
 
     @OneToMany(mappedBy = "chain")
     private List<Stores> stores;
+
+    @OneToMany(mappedBy = "chain")
+    private List<ScrapedLink> scrapedLinks;
 }

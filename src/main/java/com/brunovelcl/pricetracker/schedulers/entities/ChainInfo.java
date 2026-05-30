@@ -10,25 +10,17 @@ import java.util.List;
 @Getter
 @Setter
 public class ChainInfo {
-    private final String name;
-    private final String baseLink;
-    private final String downloadLink;
+    private Chain chain;
     private boolean updatedToday;
 
-    public ChainInfo(String name, String baseLink, String downloadLink) {
-        this.name = name;
-        this.baseLink = baseLink;
-        this.downloadLink = downloadLink;
+    public ChainInfo(Chain chain) {
+        this.chain = chain;
         this.updatedToday = false;
-    }
-
-    public static ChainInfo mapFromChain(Chain chain) {
-        return new ChainInfo(chain.getName(), chain.getWebAddress(), chain.getPriceCatalogWebAddress());
     }
 
     public static List<ChainInfo> mapFromChainList(List<Chain> chains){
         final List<ChainInfo> chainInfoList = new ArrayList<>();
-        chains.forEach( chain -> {chainInfoList.add(mapFromChain(chain));});
+        chains.forEach( chain -> {chainInfoList.add(new ChainInfo(chain));});
         return chainInfoList;
     }
 }
