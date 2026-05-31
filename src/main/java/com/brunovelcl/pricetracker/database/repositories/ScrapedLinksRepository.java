@@ -25,7 +25,7 @@ public interface ScrapedLinksRepository extends JpaRepository<ScrapedLink, Long>
     )
     void insertIgnoreDuplicate(@Param("link") String link, @Param("filename") String filename, @Param("chain_id") Integer chainId);
 
-    List<ScrapedLink> findByProcessedFalse();
+    List<ScrapedLink> findByProcessedFalseAndChainId(Integer chainId);
 
     @Modifying
     @Transactional
@@ -33,9 +33,9 @@ public interface ScrapedLinksRepository extends JpaRepository<ScrapedLink, Long>
             value = """
                     UPDATE scraped_links
                     SET processed=true
-                    WHERE id = :id
+                    WHERE id IN :ids
                     """,
             nativeQuery = true
     )
-    int processedSuccessfully(@Param("id") Long id);
+    int processedSuccessfully(@Param("ids") List<Long> ids);
 }

@@ -7,6 +7,6 @@ import java.util.List;
 
 public interface ScrapedLinksService {
     void addNew(ScrapedLink scrapedLink);
-    List<ScrapedLink> findByProcessedFalse();
-    boolean processedSuccessfully(ScrapedLink scrapedLink);
+    List<ScrapedLink> findByProcessedFalse(Integer chainId);
+    boolean processedSuccessfully(List<ScrapedLink> scrapedLinks, List<Long> failedIds);
 }

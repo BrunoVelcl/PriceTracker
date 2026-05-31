@@ -35,9 +35,11 @@ public class DataFetcher {
     private static final long TIMEOUT_WAIT = 4L;
 
     private final ScrapedLinksService sls;
+    private final PythonDownloader pythonDownloader;
 
-    public DataFetcher(ScrapedLinksService sls) {
+    public DataFetcher(ScrapedLinksService sls, PythonDownloader pythonDownloader) {
         this.sls = sls;
+        this.pythonDownloader = pythonDownloader;
     }
 
     public boolean fetch(List<ChainInfo> chainInfoList) {
@@ -47,27 +49,30 @@ public class DataFetcher {
         try (ExecutorService executor = Executors.newFixedThreadPool(Chain.values().length)) {
 
             chainInfoList.forEach(chain -> {
+
+                Integer chainId = chain.getChain().getId();
+                String chainName = chain.getChain().getName();
+
                 if (chain.isUpdatedToday()) return;
                 executor.submit(() -> {
                     StringBuilder sb = new StringBuilder();
                     LinkScraper linkScraper = new LinkScraper(sb);
                     List<ScrapedLink> scrapedLinks = linkScraper.getLinks(chain);
                     if (scrapedLinks == null) {
-                        System.out.printf(Text.Messages.SCRAPING_FAILED, chain.getChain().getName());
+                        System.out.printf(Text.Messages.SCRAPING_FAILED, chainName);
                         return;
                     }
 
                     scrapedLinks.forEach(sls::addNew);
-                    System.out.printf(Text.Messages.FINISHED_SCRAPING, chain);
-                    List<ScrapedLink> newLinks = sls.findByProcessedFalse();
+                    System.out.printf(Text.Messages.FINISHED_SCRAPING, chainName);
+                    List<ScrapedLink> newLinks = sls.findByProcessedFalse(chainId);
                     if (newLinks.isEmpty()) {
-                        System.out.printf(Text.Messages.NO_NEW_DATA, chain);
+                        System.out.printf(Text.Messages.NO_NEW_DATA, chainName);
                         return;
                     }
 
-                    List<ScrapedLink> downloadedLinks = downloadFiles(newLinks, chain);
-                    downloadedLinks.forEach(sls::processedSuccessfully);
-
+                    List<Long> failedDownloadIdList = pythonDownloader.download(newLinks);
+                    sls.processedSuccessfully(newLinks, failedDownloadIdList);
 
 //                    ParsedValuesContainer parsedValues = Parser.run(chain.getName());
 //                    if (parsedValues == null || parsedValues.isEmpty()) {
@@ -79,7 +84,7 @@ public class DataFetcher {
 //                    SaveFileManager.saveParsedValues(parsedValues, chain);
                     chain.setUpdatedToday(true);
                     updateHappened.set(true);
-                    System.out.printf(Text.Messages.COMPLETED, chain.getChain().getName());
+                    System.out.printf(Text.Messages.COMPLETED, chainName);
                 });
             });
             executor.shutdown();
@@ -92,29 +97,6 @@ public class DataFetcher {
             }
         }
         return updateHappened.get();
-    }
-
-    public static List<ScrapedLink> downloadFiles(List<ScrapedLink> newLinks, ChainInfo chainInfo) {
-        List<ScrapedLink> scrapedLinks = new ArrayList<>();
-        HttpClient client = HttpClient.newHttpClient();
-        newLinks.forEach(scrapedLink -> {
-            HttpRequest request = HttpRequest.newBuilder().uri(URI.create(scrapedLink.getLink())).build();
-            try {
-                client.send(request, HttpResponse.BodyHandlers.ofFile(Paths.get(TEMP, chainInfo.getChain().getName(), scrapedLink.getFilename())));
-            } catch (Exception e) {
-                System.err.printf(Text.ErrorMessages.DOWNLOAD_FAILED, scrapedLink.getLink());
-                System.err.println(e.getMessage());
-            }
-            scrapedLinks.add(scrapedLink);
-            if (scrapedLink.getFilename().endsWith(Text.Constants.ZIP_EXTENSION)) {
-                Path path = Paths.get(TEMP, chainInfo.getChain().getName());
-                Unzipper.unzipAllInDir(path);
-            }
-        });
-        client.close();
-        System.out.printf(Text.Messages.DOWNLOAD_COMPLETE, chainInfo.getChain().getName());
-
-        return scrapedLinks;
     }
 
 }

@@ -1,9 +1,7 @@
-from urllib.request import urlretrieve
-from urllib.error import HTTPError, URLError
 from datetime import datetime
 import sys
 import json
-
+import requests
 
 def catalogDownloader(downloadDir:str, urlAndFilenameJson:str):
 
@@ -23,24 +21,17 @@ def catalogDownloader(downloadDir:str, urlAndFilenameJson:str):
             id = kv["id"]
             url = kv["url"]
             filename = kv["filename"]  
+
+            r = requests.get(url, verify=False)
             
-            try:
-                urlretrieve(url, downloadDir + filename)
-
-            except HTTPError as e:
+            if r.status_code != 200:
                 currentTime = datetime.now()
-                log.write(logLineFormat(currentTime, "HTTP Error", id, url, e.msg))
+                log.write(logLineFormat(currentTime, r.status_code, id, url, r.reason))
                 exitCode = 1
+                continue
 
-            except URLError as e:
-                currentTime = datetime.now()
-                log.write(logLineFormat(currentTime, "URL Error", id,  url, e.msg))
-                exitCode = 1
-
-            except Exception as e:
-                currentTime = datetime.now()
-                log.write(logLineFormat(currentTime, "Unexpected Error", id,  url, e.msg))
-                exitCode = 1
+            with open(downloadDir + filename, "wb") as recievedFile:
+                recievedFile.write(r.content)
 
         if exitCode == 0:
             currentTime = datetime.now()
@@ -48,7 +39,7 @@ def catalogDownloader(downloadDir:str, urlAndFilenameJson:str):
 
     sys.exit(exitCode)
 
-def logLineFormat(datetime: str, status:str, id:int, url:str, error: Optional[BaseException] = None) -> str:
+def logLineFormat(datetime: str, status:str, id:int, url:str, error: Optional[str] = "Good") -> str:
     return f"{datetime} | {status} | {id} | {url} | {error} \n"
 
 if __name__ == "__main__":

@@ -56,6 +56,9 @@ public abstract class Text {
         public static final String DATA_GATHERING_TIMEOUT_REACHED = "Timeout reached for DataFetcher. Check threads." + NEWLINE;
         public static final String WRITING_CHAIN_TABLE_FAILED = "Failed to initialize chains table: %s" + NEWLINE;
         public static final String SCRAPED_LINK_PERSIST_FAILED = "Failed to persist found link: %s" + NEWLINE;
+        public static final String PYTHON_SCRIPT_FAILED = "Failed to run python script: %s" + NEWLINE
+                + "Check log at %s" + NEWLINE;
+        public static final String FILE_READ_ERROR = "Failed to read file: %s" + NEWLINE;
     }
 
     public static class Directories{
