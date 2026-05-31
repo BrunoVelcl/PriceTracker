@@ -1,15 +1,13 @@
 package com.brunovelcl.pricetracker.DataParser.parsers;
 
-import com.brunovelcl.pricetracker.DataFetcher.entities.Chain;
 import com.brunovelcl.pricetracker.DataParser.entities.ParsedValues;
 import com.brunovelcl.pricetracker.DataParser.entities.ParsedValuesBuilder;
 import com.brunovelcl.pricetracker.DataParser.entities.ParsedValuesContainer;
-import com.brunovelcl.pricetracker.DataParser.entities.Store;
 import com.brunovelcl.pricetracker.Text.Text;
+import com.brunovelcl.pricetracker.database.entities.Stores;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -17,6 +15,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
+
 
 public class KauflandParser extends Parser{
 
@@ -51,7 +50,7 @@ public class KauflandParser extends Parser{
     }
 
     @Override
-    protected Store parseStore(File file, String chain) {
+    protected String parseStoreName(File file) {
         this.sb.setLength(0);
         this.sb.append(file.getName());
 
@@ -68,12 +67,12 @@ public class KauflandParser extends Parser{
             }
             cleanDoubleSpace(this.sb);
         }
-        return (this.sb.isEmpty()) ? null : new Store(sb.toString(), chain);
+        return (this.sb.isEmpty()) ? null : sb.toString();
 
     }
 
     @Override
-    protected void parseData(ParsedValuesContainer parsedValues, Path filePath, Store store) {
+    protected void parseData(ParsedValuesContainer parsedValues, Path filePath, Stores store) {
         CSVFormat kauflandFormat = CSVFormat.DEFAULT
                 .builder()
                 .setDelimiter((char)0x09)

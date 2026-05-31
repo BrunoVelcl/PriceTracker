@@ -3,6 +3,7 @@ package com.brunovelcl.pricetracker.database.entities;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import java.time.Instant;
 
 @NoArgsConstructor
 @Entity
@@ -20,4 +21,13 @@ public class Stores {
     @ManyToOne
     @JoinColumn(name = "chain_id", nullable = false)
     private Chain chain;
+
+    @Column(name = "last_update", nullable = false)
+    private Instant lastParsed;
+
+    public Stores(String address, Chain chain, Instant lastParsed) {
+        this.address = address;
+        this.chain = chain;
+        this.lastParsed = lastParsed;
+    }
 }

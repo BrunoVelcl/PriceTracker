@@ -1,19 +1,15 @@
 package com.brunovelcl.pricetracker.DataParser.parsers;
 
-import com.brunovelcl.pricetracker.DataFetcher.entities.Chain;
 import com.brunovelcl.pricetracker.DataParser.entities.ParsedValues;
 import com.brunovelcl.pricetracker.DataParser.entities.ParsedValuesBuilder;
 import com.brunovelcl.pricetracker.DataParser.entities.ParsedValuesContainer;
-import com.brunovelcl.pricetracker.DataParser.entities.Store;
 import com.brunovelcl.pricetracker.Text.Text;
-import com.brunovelcl.pricetracker.Text.CroCharMap;
+import com.brunovelcl.pricetracker.database.entities.Stores;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
-
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -27,7 +23,7 @@ public class LidlParser extends Parser {
     }
 
     @Override
-    protected Store parseStore(File file, String chain) {
+    protected String parseStoreName(File file) {
         sb.setLength(0);
         sb.append(file.getName());
 
@@ -43,11 +39,11 @@ public class LidlParser extends Parser {
                 sb.delete(i, sb.length());
             }
         }
-        return (this.sb.isEmpty()) ? null : new Store(sb.toString(), chain);
+        return (this.sb.isEmpty()) ? null : sb.toString();
     }
 
     @Override
-    protected void parseData(ParsedValuesContainer parsedValues, Path filePath, Store store) {
+    protected void parseData(ParsedValuesContainer parsedValues, Path filePath, Stores store) {
         ParsedValuesBuilder builder = new ParsedValuesBuilder();
         try (BufferedReader br = Files.newBufferedReader(filePath, StandardCharsets.ISO_8859_1);
              CSVParser parser = CSVParser.parse(br, CSVFormat.DEFAULT)
@@ -76,7 +72,7 @@ public class LidlParser extends Parser {
                         parsedValues.add(newParsedValue);
                     }
                 } catch (Exception e) {
-                    System.err.printf(Text.ErrorMessages.FAILED_TO_PARSE_LINE, record.toString());
+                    System.err.printf(Text.ErrorMessages.FAILED_TO_PARSE_LINE, record);
                 }
             }
         } catch (Exception e) {

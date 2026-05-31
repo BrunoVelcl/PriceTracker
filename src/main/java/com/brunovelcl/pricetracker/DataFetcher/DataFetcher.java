@@ -1,31 +1,18 @@
 package com.brunovelcl.pricetracker.DataFetcher;
 
 import com.brunovelcl.pricetracker.DataFetcher.entities.Chain;
-
 import com.brunovelcl.pricetracker.DataParser.entities.ParsedValuesContainer;
 import com.brunovelcl.pricetracker.DataParser.parsers.Parser;
-import com.brunovelcl.pricetracker.ProductManager.SaveFIleManager.SaveFileManager;
 import com.brunovelcl.pricetracker.Text.Text;
 import com.brunovelcl.pricetracker.database.entities.ScrapedLink;
 import com.brunovelcl.pricetracker.database.services.interfaces.ScrapedLinksService;
 import com.brunovelcl.pricetracker.schedulers.entities.ChainInfo;
 import org.springframework.stereotype.Service;
-
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-
-import static com.brunovelcl.pricetracker.Text.Text.Directories.TEMP;
 
 @Service
 public class DataFetcher {
@@ -60,9 +47,7 @@ public class DataFetcher {
                         System.out.printf(Text.Messages.SCRAPING_FAILED, chainName);
                         return;
                     }
-
                     scrapedLinks.forEach(sls::addNew);
-                    System.out.printf(Text.Messages.FINISHED_SCRAPING, chainName);
                     List<ScrapedLink> newLinks = sls.findByProcessedFalse(chainId);
                     if (newLinks.isEmpty()) {
                         System.out.printf(Text.Messages.NO_NEW_DATA, chainName);
@@ -73,14 +58,15 @@ public class DataFetcher {
                     sls.processedSuccessfully(newLinks, failedDownloadIdList);
 
 
-//                    ParsedValuesContainer parsedValues = Parser.run(chain.getName());
-//                    if (parsedValues == null || parsedValues.isEmpty()) {
-//                        System.err.printf(Text.ErrorMessages.PARSING_RETURNED_NOTHING, chain);
-//                        return;
-//                    }
+                    ParsedValuesContainer parsedValues = Parser.run(chain.getChain());
+                    if (parsedValues == null || parsedValues.isEmpty()) {
+                        System.err.printf(Text.ErrorMessages.PARSING_RETURNED_NOTHING, chain);
+                        return;
+                    }
 
+                    //TODO: Database update here...
 
-//                    SaveFileManager.saveParsedValues(parsedValues, chain);
+                    //SaveFileManager.saveParsedValues(parsedValues, chainName);
                     chain.setUpdatedToday(true);
                     updateHappened.set(true);
                     System.out.printf(Text.Messages.COMPLETED, chainName);

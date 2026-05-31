@@ -1,12 +1,11 @@
 package com.brunovelcl.pricetracker.DataParser.parsers;
 
-import com.brunovelcl.pricetracker.DataFetcher.entities.Chain;
 import com.brunovelcl.pricetracker.DataParser.entities.ParsedValues;
 import com.brunovelcl.pricetracker.DataParser.entities.ParsedValuesBuilder;
 import com.brunovelcl.pricetracker.DataParser.entities.ParsedValuesContainer;
-import com.brunovelcl.pricetracker.DataParser.entities.Store;
 import com.brunovelcl.pricetracker.Text.CroCharMap;
 import com.brunovelcl.pricetracker.Text.Text;
+import com.brunovelcl.pricetracker.database.entities.Stores;
 
 import java.io.File;
 import java.io.IOException;
@@ -23,7 +22,7 @@ public class PlodineSparParser extends Parser {
     }
 
     @Override
-    protected Store parseStore(File file, String chain) {
+    protected String parseStoreName(File file) {
         sb.setLength(0);
         sb.append(file.getName());
 
@@ -40,12 +39,12 @@ public class PlodineSparParser extends Parser {
             }
             cleanDoubleSpace(sb);
         }
-        return (this.sb.isEmpty()) ? null : new Store(sb.toString(), chain);
+        return (this.sb.isEmpty()) ? null : sb.toString();
 
     }
 
     @Override
-    protected void parseData(ParsedValuesContainer parsedValues, Path filePath, Store store) {
+    protected void parseData(ParsedValuesContainer parsedValues, Path filePath, Stores store) {
         String data = null;
         try {
             data = Files.readString(filePath, StandardCharsets.ISO_8859_1);

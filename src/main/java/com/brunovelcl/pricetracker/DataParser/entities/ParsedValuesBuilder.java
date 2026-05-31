@@ -1,5 +1,7 @@
 package com.brunovelcl.pricetracker.DataParser.entities;
 
+import com.brunovelcl.pricetracker.database.entities.Stores;
+
 public class ParsedValuesBuilder {
 
     private Long barcode;
@@ -8,7 +10,7 @@ public class ParsedValuesBuilder {
     private String brand;
     private String unit_quantity;
     private String unit;
-    private Store store;
+    private Stores store;
 
     public ParsedValuesBuilder() {
     }
@@ -37,7 +39,7 @@ public class ParsedValuesBuilder {
         this.unit = unit;
     }
 
-    public void store(Store store){
+    public void store(Stores store){
         this.store = store;
     }
 

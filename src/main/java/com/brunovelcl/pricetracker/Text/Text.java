@@ -8,9 +8,6 @@ public abstract class Text {
     public static class Messages{
         public static final String WAITING_FOR_WEBPAGE =
                 ANSI.Color.basicString("Waiting on: ", ANSI.BasicColor.BLUE) + "%s" + NEWLINE;
-        public static final String FINISHED_SCRAPING =
-                ANSI.Color.basicString("Finished scraping, ", ANSI.BasicColor.YELLOW) +
-                ANSI.Color.basicString("starting download: ", ANSI.BasicColor.BLUE) + "%s" + NEWLINE;
         public static final String DOWNLOAD_COMPLETE =
                 ANSI.Color.basicString("Download Complete: ", ANSI.BasicColor.GREEN) + "%s" + NEWLINE;
         public static final String NO_NEW_DATA =

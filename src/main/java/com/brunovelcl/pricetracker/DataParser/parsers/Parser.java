@@ -1,49 +1,48 @@
 package com.brunovelcl.pricetracker.DataParser.parsers;
 
-import com.brunovelcl.pricetracker.DataFetcher.entities.Chain;
 import com.brunovelcl.pricetracker.DataParser.entities.ParsedValuesContainer;
-import com.brunovelcl.pricetracker.DataParser.entities.Store;
-import com.brunovelcl.pricetracker.DataParser.repositories.StoreRepoImpl;
 import com.brunovelcl.pricetracker.Text.Text;
-import org.springframework.stereotype.Component;
+import com.brunovelcl.pricetracker.database.entities.Chain;
+import com.brunovelcl.pricetracker.database.entities.Stores;
+import com.brunovelcl.pricetracker.database.services.interfaces.StoresService;
+import lombok.NoArgsConstructor;
 
 
 import java.io.File;
 import java.nio.file.Path;
+import java.time.Instant;
+import java.util.Optional;
 
+@NoArgsConstructor
 public abstract class Parser {
 
     private static final String DATA_DIR = Text.Directories.TEMP;
 
-    private StoreRepoImpl storeRepo;
+    private StoresService storesService;
 
-    public Parser() {
-        this.storeRepo = StoreRepoImpl.load();
+    public Parser(StoresService storesService) {
+        this.storesService = storesService;
     }
 
-    protected abstract void parseData(ParsedValuesContainer parsedValues, Path filePath, Store store);
+    protected abstract void parseData(ParsedValuesContainer parsedValues, Path filePath, Stores store);
 
-    protected abstract Store parseStore(File file, String chain);
+    protected abstract String parseStoreName(File file);
 
 
-    private ParsedValuesContainer runParser(String chain) {
+    private ParsedValuesContainer runParser(Chain chain) {
         ParsedValuesContainer parsedValues = new ParsedValuesContainer();
-        File dir = new File(DATA_DIR, chain);
+        File dir = new File(DATA_DIR, chain.getName());
         File[] files = dir.listFiles();
         if (files == null) return parsedValues;
 
         for (File file : files) {
-            if(file.getName().equals(chain)) continue;
-            Store parsedStore = parseStore(file, chain);
-            int savedStoreIdx = this.storeRepo.getStores().indexOf(parsedStore);
-            if (savedStoreIdx == -1) {
-                this.storeRepo.appendStoreToFile(parsedStore);
-                this.storeRepo = StoreRepoImpl.load();
-                parseData(parsedValues, Path.of(file.toURI()), parsedStore);
-            } else {
-                Store currentStore = this.storeRepo.getStores().get(savedStoreIdx);
-                parseData(parsedValues, Path.of(file.toURI()), currentStore);
-            }
+            if(file.getName().equals(chain.getName())) continue;
+            String parsedStoreName = parseStoreName(file);
+
+            Optional<Stores> existingStore = this.storesService.findByAddress(parsedStoreName);
+            Stores currentStore = existingStore.orElseGet(() -> this.storesService.save(new Stores(parsedStoreName, chain, Instant.now())));
+            parseData(parsedValues, Path.of(file.toURI()), currentStore);
+
             if(!file.delete()){
                 System.err.printf(Text.ErrorMessages.FAILED_TO_DELETE_FILE, file);
             }
@@ -52,9 +51,9 @@ public abstract class Parser {
         return parsedValues;
     }
 
-    public static ParsedValuesContainer run(String chain) {
+    public static ParsedValuesContainer run(Chain chain) {
         Parser parser = null;
-        switch (chain) {
+        switch (chain.getName()) {
             case "LIDL" -> parser = new LidlParser();
             case "KAUFLAND" -> parser = new KauflandParser();
             case "PLODINE, SPAR" -> parser = new PlodineSparParser();

@@ -1,4 +1,6 @@
 package com.brunovelcl.pricetracker.DataParser.entities;
+import com.brunovelcl.pricetracker.database.entities.Stores;
+
 import static com.brunovelcl.pricetracker.Text.Text.Constants.LEVEL_1_DELIMITER;
 
 public class ParsedValues {
@@ -9,9 +11,9 @@ public class ParsedValues {
     private final String brand;
     private final String unit_quantity;
     private final String unit;
-    private final Store store;
+    private final Stores store;
 
-    public ParsedValues(Long barcode, Double price, String productName, String brand, String unit_quantity, String unit, Store store) {
+    public ParsedValues(Long barcode, Double price, String productName, String brand, String unit_quantity, String unit, Stores store) {
         this.barcode = barcode;
         this.price = price;
         this.productName = productName;
@@ -45,7 +47,7 @@ public class ParsedValues {
         return unit;
     }
 
-    public Store getStoreInfo() {
+    public Stores getStoreInfo() {
         return store;
     }
 
