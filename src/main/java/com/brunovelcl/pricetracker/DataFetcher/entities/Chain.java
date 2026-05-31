@@ -1,5 +1,7 @@
 package com.brunovelcl.pricetracker.DataFetcher.entities;
 
+//TODO: This enum is used throughout the project, it should be phased out
+
 public enum Chain {
     LIDL((byte)0),
     KAUFLAND((byte)1),

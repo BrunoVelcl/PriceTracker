@@ -1,10 +1,12 @@
 package com.brunovelcl.pricetracker;
 
 import com.brunovelcl.pricetracker.DataFetcher.DataFetcher;
+import com.brunovelcl.pricetracker.DataFetcher.Unzipper;
 import com.brunovelcl.pricetracker.DataFetcher.entities.Chain;
 import com.brunovelcl.pricetracker.DataParser.entities.ParsedValuesContainer;
 import com.brunovelcl.pricetracker.DataParser.parsers.Parser;
 import com.brunovelcl.pricetracker.ProductManager.SaveFIleManager.SaveFileManager;
+import com.brunovelcl.pricetracker.Text.Text;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -25,16 +27,7 @@ public class PriceTrackerApplication {
 
 	public static void main(String[] args) {
 
-		//Trust store needed for some chains
-		//System.setProperty("javax.net.ssl.trustStore", Paths.get("certs/truststore.jks").toAbsolutePath().toString());
-		//System.setProperty("javax.net.ssl.trustStorePassword", "changeit"); //TODO: change and add password to env when deploying
-
-//		boolean[] chains = new boolean[Chain.values().length];
-//		Arrays.fill(chains, true);
-//		chains[Chain.STUDENAC.getIndex()] = false;
-//		DataFetcher dataFetcher = new DataFetcher();
-//		dataFetcher.fetch(chains);
-
+		//Unzipper.unzipAllInDir(Text.Directories.TEMP + "SPAR/");
 
 		SpringApplication.run(PriceTrackerApplication.class, args);
 	}

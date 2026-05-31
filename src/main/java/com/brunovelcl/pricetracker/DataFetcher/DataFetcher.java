@@ -1,9 +1,7 @@
 package com.brunovelcl.pricetracker.DataFetcher;
 
 import com.brunovelcl.pricetracker.DataFetcher.entities.Chain;
-import com.brunovelcl.pricetracker.DataFetcher.entities.DownloadLink;
-import com.brunovelcl.pricetracker.DataFetcher.repositories.implementations.ChainWebInfoRepoImpl;
-import com.brunovelcl.pricetracker.DataFetcher.repositories.implementations.DownloadLinkRepoImpl;
+
 import com.brunovelcl.pricetracker.DataParser.entities.ParsedValuesContainer;
 import com.brunovelcl.pricetracker.DataParser.parsers.Parser;
 import com.brunovelcl.pricetracker.ProductManager.SaveFIleManager.SaveFileManager;
@@ -73,6 +71,7 @@ public class DataFetcher {
 
                     List<Long> failedDownloadIdList = pythonDownloader.download(newLinks);
                     sls.processedSuccessfully(newLinks, failedDownloadIdList);
+
 
 //                    ParsedValuesContainer parsedValues = Parser.run(chain.getName());
 //                    if (parsedValues == null || parsedValues.isEmpty()) {

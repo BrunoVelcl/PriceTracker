@@ -52,6 +52,9 @@ public class PythonDownloader {
             System.err.printf(Text.ErrorMessages.PYTHON_SCRIPT_FAILED, SCRIPT_PATH, downloadDir);
             System.err.println(e.getMessage());
         }
+
+        Unzipper.unzipAllInDir(downloadDir);
+
         System.out.printf(Text.Messages.DOWNLOAD_COMPLETE, chain);
         return scrapedLinksTableIds;
     }
