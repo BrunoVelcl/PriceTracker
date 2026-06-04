@@ -6,18 +6,23 @@ import com.brunovelcl.pricetracker.DataParser.entities.ParsedValuesContainer;
 import com.brunovelcl.pricetracker.Text.CroCharMap;
 import com.brunovelcl.pricetracker.Text.Text;
 import com.brunovelcl.pricetracker.database.entities.Stores;
+import com.brunovelcl.pricetracker.database.services.interfaces.StoresService;
+import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+@Component
 public class PlodineSparParser extends Parser {
 
-    StringBuilder sb;
+    private final StringBuilder sb;
 
-    public PlodineSparParser() {
+    public PlodineSparParser(StoresService storesService) {
+        this.storesService = storesService;
         this.sb = new StringBuilder();
     }
 
@@ -91,7 +96,7 @@ public class PlodineSparParser extends Parser {
                     case 5 -> {
                         comaToDot(sb.append(data, start, i));
                         String test = sb.toString();
-                        builder.price((test.isEmpty()) ? null : Double.parseDouble(test));
+                        builder.price((test.isEmpty()) ? null : BigDecimal.valueOf(Double.parseDouble(test)));
                     }
                     case 10 -> {
                         String test = data.substring(start, i);

@@ -2,10 +2,12 @@ package com.brunovelcl.pricetracker.DataParser.entities;
 
 import com.brunovelcl.pricetracker.database.entities.Stores;
 
+import java.math.BigDecimal;
+
 public class ParsedValuesBuilder {
 
     private Long barcode;
-    private Double price;
+    private BigDecimal price;
     private String productName;
     private String brand;
     private String unit_quantity;
@@ -19,7 +21,7 @@ public class ParsedValuesBuilder {
         this.barcode = barcode;
     }
 
-    public void price(Double price) {
+    public void price(BigDecimal price) {
         this.price = price;
     }
 

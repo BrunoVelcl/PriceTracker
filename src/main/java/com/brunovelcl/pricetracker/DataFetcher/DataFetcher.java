@@ -3,12 +3,14 @@ package com.brunovelcl.pricetracker.DataFetcher;
 import com.brunovelcl.pricetracker.DataFetcher.entities.Chain;
 import com.brunovelcl.pricetracker.DataParser.entities.ParsedValuesContainer;
 import com.brunovelcl.pricetracker.DataParser.parsers.Parser;
+import com.brunovelcl.pricetracker.DataWriter.DataWriter;
 import com.brunovelcl.pricetracker.Text.Text;
 import com.brunovelcl.pricetracker.database.entities.ScrapedLink;
 import com.brunovelcl.pricetracker.database.services.interfaces.ScrapedLinksService;
 import com.brunovelcl.pricetracker.schedulers.entities.ChainInfo;
 import org.springframework.stereotype.Service;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -21,10 +23,14 @@ public class DataFetcher {
 
     private final ScrapedLinksService sls;
     private final PythonDownloader pythonDownloader;
+    private final DataWriter dataWriter;
+    private final Map<String, Parser> parsers;
 
-    public DataFetcher(ScrapedLinksService sls, PythonDownloader pythonDownloader) {
+    public DataFetcher(ScrapedLinksService sls, PythonDownloader pythonDownloader, DataWriter dataWriter, Map<String, Parser> parsers) {
         this.sls = sls;
         this.pythonDownloader = pythonDownloader;
+        this.dataWriter = dataWriter;
+        this.parsers = parsers;
     }
 
     public boolean fetch(List<ChainInfo> chainInfoList) {
@@ -41,30 +47,31 @@ public class DataFetcher {
                 if (chain.isUpdatedToday()) return;
                 executor.submit(() -> {
                     StringBuilder sb = new StringBuilder();
-                    LinkScraper linkScraper = new LinkScraper(sb);
-                    List<ScrapedLink> scrapedLinks = linkScraper.getLinks(chain);
-                    if (scrapedLinks == null) {
-                        System.out.printf(Text.Messages.SCRAPING_FAILED, chainName);
-                        return;
-                    }
-                    scrapedLinks.forEach(sls::addNew);
-                    List<ScrapedLink> newLinks = sls.findByProcessedFalse(chainId);
-                    if (newLinks.isEmpty()) {
-                        System.out.printf(Text.Messages.NO_NEW_DATA, chainName);
-                        return;
-                    }
+//                    LinkScraper linkScraper = new LinkScraper(sb);
+//                    List<ScrapedLink> scrapedLinks = linkScraper.getLinks(chain);
+//                    if (scrapedLinks == null) {
+//                        System.out.printf(Text.Messages.SCRAPING_FAILED, chainName);
+//                        return;
+//                    }
+//                    scrapedLinks.forEach(sls::addNew);
+//                    List<ScrapedLink> newLinks = sls.findByProcessedFalse(chainId);
+//                    if (newLinks.isEmpty()) {
+//                        System.out.printf(Text.Messages.NO_NEW_DATA, chainName);
+//                        return;
+//                    }
+//
+//                    List<Long> failedDownloadIdList = pythonDownloader.download(newLinks);
+//                    sls.processedSuccessfully(newLinks, failedDownloadIdList);
 
-                    List<Long> failedDownloadIdList = pythonDownloader.download(newLinks);
-                    sls.processedSuccessfully(newLinks, failedDownloadIdList);
 
-
-                    ParsedValuesContainer parsedValues = Parser.run(chain.getChain());
+                    Parser parser = parsers.get(chainName.toLowerCase() + "Parser");
+                    ParsedValuesContainer parsedValues = parser.run(chain.getChain());
                     if (parsedValues == null || parsedValues.isEmpty()) {
                         System.err.printf(Text.ErrorMessages.PARSING_RETURNED_NOTHING, chain);
                         return;
                     }
 
-                    //TODO: Database update here...
+                    this.dataWriter.updateDatabase(parsedValues.getBrandedProducts());
 
                     //SaveFileManager.saveParsedValues(parsedValues, chainName);
                     chain.setUpdatedToday(true);

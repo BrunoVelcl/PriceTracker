@@ -16,8 +16,8 @@ public class ParsedValuesContainer {
         this.chainSpecificProducts = new ArrayList<>();
     }
 
-    public HashMap<ParsedValues, ParsedValues> getBrandedProducts() {
-        return brandedProducts;
+    public List<ParsedValues> getBrandedProducts() {
+        return brandedProducts.keySet().stream().toList();
     }
 
     public List<ParsedValues> getChainSpecificProducts() {
@@ -44,8 +44,8 @@ public class ParsedValuesContainer {
         if(foundDuplicate == null) return false;
         if(foundDuplicate.getPrice().equals(parsedValue.getPrice())) return true;
         System.out.printf(Text.Messages.CONFLICTING_DATA_ENTRY,
-                foundDuplicate.getProductName(), foundDuplicate.getBarcode(), foundDuplicate.getStoreInfo().getAddress(), foundDuplicate.getStoreInfo().getChain(), foundDuplicate.getPrice(),
-                parsedValue.getProductName(), parsedValue.getBarcode(), parsedValue.getStoreInfo().getAddress(), parsedValue.getStoreInfo().getChain(), parsedValue.getPrice());
+                foundDuplicate.getProductName(), foundDuplicate.getBarcode(), foundDuplicate.getStore().getAddress(), foundDuplicate.getStore().getChain(), foundDuplicate.getPrice(),
+                parsedValue.getProductName(), parsedValue.getBarcode(), parsedValue.getStore().getAddress(), parsedValue.getStore().getChain(), parsedValue.getPrice());
         return true;
     }
 

@@ -5,25 +5,31 @@ import com.brunovelcl.pricetracker.DataParser.entities.ParsedValuesBuilder;
 import com.brunovelcl.pricetracker.DataParser.entities.ParsedValuesContainer;
 import com.brunovelcl.pricetracker.Text.Text;
 import com.brunovelcl.pricetracker.database.entities.Stores;
+import com.brunovelcl.pricetracker.database.services.interfaces.StoresService;
+import lombok.NoArgsConstructor;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
+import org.springframework.stereotype.Component;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 
-
+@Component
 public class KauflandParser extends Parser{
 
 
     private final DecimalFormat decimalFormat;
     private final StringBuilder sb;
 
-    public KauflandParser() {
+    public KauflandParser(StoresService storesService) {
+        this.storesService = storesService;
 
         this.sb = new StringBuilder();
         DecimalFormatSymbols dfs = new DecimalFormatSymbols();
@@ -91,7 +97,7 @@ public class KauflandParser extends Parser{
                     builder.brand(record.get(2));
                     builder.store(store);
                     builder.barcode(Long.valueOf(record.get(13)));
-                    builder.price(this.decimalFormat.parse(record.get(5).trim()).doubleValue());
+                    builder.price(BigDecimal.valueOf(this.decimalFormat.parse(record.get(5).trim()).doubleValue()));
                     ParsedValues newParsedValue = builder.consume();
                     if(newParsedValue != null) {
                         parsedValues.add(newParsedValue);

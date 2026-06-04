@@ -5,20 +5,26 @@ import com.brunovelcl.pricetracker.DataParser.entities.ParsedValuesBuilder;
 import com.brunovelcl.pricetracker.DataParser.entities.ParsedValuesContainer;
 import com.brunovelcl.pricetracker.Text.Text;
 import com.brunovelcl.pricetracker.database.entities.Stores;
+import com.brunovelcl.pricetracker.database.services.interfaces.StoresService;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
+import org.springframework.stereotype.Component;
+
 import java.io.BufferedReader;
 import java.io.File;
+import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+@Component
 public class LidlParser extends Parser {
 
-    StringBuilder sb;
+    private final StringBuilder sb;
 
-    public LidlParser() {
+    public LidlParser(StoresService storesService) {
+        this.storesService = storesService;
         this.sb = new StringBuilder();
     }
 
@@ -63,9 +69,9 @@ public class LidlParser extends Parser {
                     }
                     //If there is no regular price take te promo price from the next column
                     if(record.get(5).isEmpty()){
-                        builder.price(Double.valueOf(record.get(6)));
+                        builder.price(BigDecimal.valueOf(Double.parseDouble(record.get(6))));
                     }else {
-                        builder.price(Double.valueOf(record.get(5)));
+                        builder.price(BigDecimal.valueOf(Double.parseDouble(record.get(5))));
                     }
                     ParsedValues newParsedValue = builder.consume();
                     if (newParsedValue != null) {

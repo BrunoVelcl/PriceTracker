@@ -1,19 +1,23 @@
 package com.brunovelcl.pricetracker.DataParser.entities;
 import com.brunovelcl.pricetracker.database.entities.Stores;
+import lombok.Getter;
+
+import java.math.BigDecimal;
 
 import static com.brunovelcl.pricetracker.Text.Text.Constants.LEVEL_1_DELIMITER;
 
+@Getter
 public class ParsedValues {
 
     private final Long barcode;
-    private final Double price;
+    private final BigDecimal price;
     private final String productName;
     private final String brand;
     private final String unit_quantity;
     private final String unit;
     private final Stores store;
 
-    public ParsedValues(Long barcode, Double price, String productName, String brand, String unit_quantity, String unit, Stores store) {
+    public ParsedValues(Long barcode, BigDecimal price, String productName, String brand, String unit_quantity, String unit, Stores store) {
         this.barcode = barcode;
         this.price = price;
         this.productName = productName;
@@ -21,34 +25,6 @@ public class ParsedValues {
         this.unit_quantity = unit_quantity;
         this.unit = unit;
         this.store = store;
-    }
-
-    public Long getBarcode() {
-        return barcode;
-    }
-
-    public Double getPrice() {
-        return price;
-    }
-
-    public String getProductName() {
-        return productName;
-    }
-
-    public String getBrand() {
-        return brand;
-    }
-
-    public String getUnit_quantity() {
-        return unit_quantity;
-    }
-
-    public String getUnit() {
-        return unit;
-    }
-
-    public Stores getStoreInfo() {
-        return store;
     }
 
     @Override
