@@ -5,7 +5,6 @@ import com.brunovelcl.pricetracker.DataParser.entities.ParsedValuesContainer;
 import com.brunovelcl.pricetracker.DataParser.parsers.Parser;
 import com.brunovelcl.pricetracker.DataWriter.DataWriter;
 import com.brunovelcl.pricetracker.Text.Text;
-import com.brunovelcl.pricetracker.database.entities.ScrapedLink;
 import com.brunovelcl.pricetracker.database.services.interfaces.ScrapedLinksService;
 import com.brunovelcl.pricetracker.schedulers.entities.ChainInfo;
 import org.springframework.stereotype.Service;
@@ -73,7 +72,6 @@ public class DataFetcher {
 
                     this.dataWriter.updateDatabase(parsedValues.getBrandedProducts());
 
-                    //SaveFileManager.saveParsedValues(parsedValues, chainName);
                     chain.setUpdatedToday(true);
                     updateHappened.set(true);
                     System.out.printf(Text.Messages.COMPLETED, chainName);

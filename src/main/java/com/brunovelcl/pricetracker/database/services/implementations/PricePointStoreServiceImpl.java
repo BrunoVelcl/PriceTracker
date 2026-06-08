@@ -1,15 +1,15 @@
 package com.brunovelcl.pricetracker.database.services.implementations;
 
-import com.brunovelcl.pricetracker.database.DTOs.PricePointPricePointStoreDTO;
-import com.brunovelcl.pricetracker.database.DTOs.PricePointPricePointStoreDTOView;
-import com.brunovelcl.pricetracker.database.entities.PricePoint;
+import com.brunovelcl.pricetracker.DataWriter.dtos.PricePointStoreDTO;
+import com.brunovelcl.pricetracker.DataWriter.dtos.PricePointStoreView;
 import com.brunovelcl.pricetracker.database.entities.PricePointStore;
 import com.brunovelcl.pricetracker.database.repositories.PricePointStoreRepository;
 import com.brunovelcl.pricetracker.database.services.interfaces.PricePointStoreService;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
+
 
 @Service
 public class PricePointStoreServiceImpl implements PricePointStoreService {
@@ -25,24 +25,29 @@ public class PricePointStoreServiceImpl implements PricePointStoreService {
     }
 
     @Override
-    public Optional<PricePointPricePointStoreDTO> findByBrandNameProductAndStore(Long productId, Integer storeId) {
-        List<PricePointPricePointStoreDTOView> viewList = this.ppsRepo.findByBrandNameProductAndStore(productId, storeId);
-        if(viewList.isEmpty()) return Optional.empty();
-        PricePointPricePointStoreDTOView view = viewList.getFirst();
-        return Optional.of(
-                new PricePointPricePointStoreDTO(
-                        view.getPricePointId(),
-                        view.getPrice(),
-                        view.getBrandNameProductId(),
-                        view.getPricePointStoreId(),
-                        view.getStoreId(),
-                        view.getLastUpdated()
-                )
-        );
+    public void delete(PricePointStore pricePointStore) {
+        this.ppsRepo.delete(pricePointStore);
     }
 
     @Override
-    public void delete(PricePointStore pricePointStore) {
-        this.ppsRepo.delete(pricePointStore);
+    public List<PricePointStore> findAll() {
+        return this.ppsRepo.findAll();
+    }
+
+    @Override
+    public List<PricePointStoreDTO> findAllCustom() {
+        List<PricePointStoreView> view = this.ppsRepo.findAllRows();
+        List<PricePointStoreDTO> dtoList = new ArrayList<>();
+
+        view.forEach(row -> {
+            dtoList.add(new PricePointStoreDTO(row.getPricePointId(), row.getStoreId(), row.getLastUpdated()));
+        });
+
+        return dtoList;
+    }
+
+    @Override
+    public void ingestTable(List<PricePointStoreDTO> list, String tableName) throws Exception {
+        this.ppsRepo.ingestTable(list, tableName);
     }
 }

@@ -56,6 +56,8 @@ public abstract class Text {
         public static final String PYTHON_SCRIPT_FAILED = "Failed to run python script: %s" + NEWLINE
                 + "Check log at %s" + NEWLINE;
         public static final String FILE_READ_ERROR = "Failed to read file: %s" + NEWLINE;
+        public static final String TABLE_INGESTION_FAILED = "Table ingestion, and swap failed";
+        public static final String FAILED_TO_SWAP_TABLES = "Failed to swap tables: %s and %s" + NEWLINE;
     }
 
     public static class Directories{

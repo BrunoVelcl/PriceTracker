@@ -1,14 +1,14 @@
 package com.brunovelcl.pricetracker.database.services.interfaces;
 
-import com.brunovelcl.pricetracker.database.DTOs.PricePointPricePointStoreDTO;
-import com.brunovelcl.pricetracker.database.entities.PricePoint;
+import com.brunovelcl.pricetracker.DataWriter.dtos.PricePointStoreDTO;
 import com.brunovelcl.pricetracker.database.entities.PricePointStore;
-import org.springframework.data.repository.query.Param;
+import java.util.List;
 
-import java.util.Optional;
 
 public interface PricePointStoreService {
     PricePointStore save(PricePointStore pricePointStore);
-    Optional<PricePointPricePointStoreDTO> findByBrandNameProductAndStore(Long productId, Integer storeId);
     void delete(PricePointStore pricePointStore);
+    List<PricePointStore> findAll();
+    List<PricePointStoreDTO> findAllCustom();
+    void ingestTable(List<PricePointStoreDTO> list, String tableName) throws Exception;
 }
