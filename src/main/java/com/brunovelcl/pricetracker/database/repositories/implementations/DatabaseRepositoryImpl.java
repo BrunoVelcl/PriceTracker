@@ -58,20 +58,4 @@ public class DatabaseRepositoryImpl implements DatabaseRepository {
         return Optional.of(connameList.getFirst());
     }
 
-    @Override
-    public void dropFKConstraintByConname(String table, String conname) {
-        final String sql = String.format("""
-                ALTER TABLE %s
-                DROP CONSTRAINT %s
-                """, table, conname);
-    }
-
-    @Override
-    public void addFKConstraintByConname(String table, String conname, String firstTablesFK, String secondTable) {
-        final String sql = String.format("""
-                ALTER TABLE %s
-                ADD CONSTRAINT %s
-                FOREIGN KEY (%s) REFERENCES price
-                """, table, conname, firstTablesFK, secondTable);
-    }
 }

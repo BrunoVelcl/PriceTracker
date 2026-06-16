@@ -8,7 +8,6 @@ import com.brunovelcl.pricetracker.database.entities.PricePoint;
 import com.brunovelcl.pricetracker.database.entities.Stores;
 import com.brunovelcl.pricetracker.database.repositories.DatabaseRepository;
 import com.brunovelcl.pricetracker.database.services.interfaces.BrandNameProductsService;
-import com.brunovelcl.pricetracker.database.services.interfaces.DatabaseService;
 import com.brunovelcl.pricetracker.database.services.interfaces.PricePointService;
 import com.brunovelcl.pricetracker.database.services.interfaces.PricePointStoreService;
 import org.springframework.stereotype.Service;
@@ -25,14 +24,12 @@ public class DataWriter {
     private final PricePointService pricePointService;
     private final PricePointStoreService pricePointStoreService;
     private final DatabaseRepository databaseRepository;
-    private final DatabaseService databaseService;
 
-    public DataWriter(BrandNameProductsService brandNameProductsService, PricePointService pricePointService, PricePointStoreService pricePointStoreService, DatabaseRepository databaseRepository, DatabaseService databaseService) {
+    public DataWriter(BrandNameProductsService brandNameProductsService, PricePointService pricePointService, PricePointStoreService pricePointStoreService, DatabaseRepository databaseRepository) {
         this.brandNameProductsService = brandNameProductsService;
         this.pricePointService = pricePointService;
         this.pricePointStoreService = pricePointStoreService;
         this.databaseRepository = databaseRepository;
-        this.databaseService = databaseService;
     }
 
     public void updateDatabase(List<ParsedValues> parsedValues) {
@@ -55,11 +52,8 @@ public class DataWriter {
             this.pricePointService.ingestTable(outputTablesDTO.pricePoints(), ppNew);
             this.pricePointStoreService.ingestTable(outputTablesDTO.pricePointStore(), ppsNew);
 
-            System.out.println("REACHED FIRST SWAP");
-            this.databaseService.swapTables(ppOld, pricePointJoinColumn, ppNew );
-            System.out.println("REACHED SECOND SWAP");
+            this.databaseRepository.swapTwoTablesWithDrop(ppOld, ppNew);
             this.databaseRepository.swapTwoTablesWithDrop(ppsOld, ppsNew);
-            System.out.println("SWAPED TABLES!!!");
 
         } catch (Exception e) {
             System.err.println(Text.ErrorMessages.TABLE_INGESTION_FAILED);
